@@ -527,87 +527,112 @@ module.exports = (app, db) => {
     })
   }));
 
-  app.post("/assignStudentToPackage", asyncHandler( async (req, res) => {
+  app.post("/assignStudentToPackage", asyncHandler(async (req, res) => {
     let packageId = req.body.packageId;
     let studentList = req.body.studentList;
     let userCourse = [];
-    if(packageId !="" && studentList.length>0){
-      for (const student of studentList) { 
+    if (packageId != "" && studentList.length > 0) {
+      for (const student of studentList) {
         var assignPack = {};
         assignPack['packagePackageId'] = packageId;
         assignPack['userEmailId'] = student.email_Id;
         assignPack['created_by'] = "tathagat@gmail.com" //req.user.email_Id;
         assignPack['updated_by'] = "tathagat@gmail.com" //req.user.email_Id;
+        assignPack['status'] = student.status //req.user.email_Id;
         //console.log("assignPack --- ", assignPack);
-        await userPackages.create(assignPack).then((s, err) => {
-          if(err){
-            console.log("My err --", err);
-            userCourse.push(err);
-          }else{
-            userCourse.push(s);
-          }        
-        });
+        await userPackages
+            .findOne({where: {packagePackageId: packageId, userEmailId: student.email_Id}})
+            .then(async (s) => {
+              if (!s) {
+                await userPackages.create(assignPack).then((s, err) => {
+                  if (err) {
+                    console.log("My err --", err);
+                    userCourse.push(err);
+                  } else {
+                    userCourse.push(s);
+                  }
+                });
+
+              } else {
+
+                await userPackages.update(
+                    {status: student.status},
+                    {where: {packagePackageId: packageId, userEmailId: student.email_Id}})
+                    .then((s) => {
+                      if (s) {
+                        userCourse.push(s);
+                      }
+                    })
+              }
+            });
+
       }
       //console.log("userCourse -- ", userCourse);
-      return res.status(200).send({code:200, data:userCourse});
-    }else{
-      return res.status(201).send({code:201, error:"packageId or Student is missing"});
+      return res.status(200).send({code: 200, data: userCourse});
+    } else {
+      return res.status(201).send({code: 201, error: "packageId or Student is missing"});
     }
   }));
 
   app.post('/mypackages_old/', (req, res) => {
-    const { packages } = db;
-    userPackages.findAll({ where: { userEmailId: req.body.userId }, order:[["updated_at", "DESC"]]} )
-    .then( async (userpackages) => {
-      //console.log("userpackages --", userpackages[0]);
-      if (!userpackages) {
-        res.status(200).json({code:201, error:'no package found'});
-      } else {
-        var result = [];
-        for(var pack of userpackages ){
-          console.log("pack --", pack.packagePackageId);    
-          let tempPack = {
-            id:pack.id,
-            packagePackageId: pack.packagePackageId,
-            userEmailId:pack.userEmailId,
-            created_by:pack.created_by,
-            created_at:pack.created_at,
-            updated_by:pack.updated_by,
-            updated_at:pack.updated_at,
-            status:pack.status
-          }
-          await packages.findOne({attributes:['packageId', 'PackageName'], where: { packageId: pack.packagePackageId}})
-          .then((e) => {
+    const {packages} = db;
+    userPackages.findAll({where: {userEmailId: req.body.userId}, order: [["updated_at", "DESC"]]})
+        .then(async (userpackages) => {
+          //console.log("userpackages --", userpackages[0]);
+          if (!userpackages) {
+            res.status(200).json({code: 201, error: 'no package found'});
+          } else {
+            var result = [];
+            for (var pack of userpackages) {
+              console.log("pack --", pack.packagePackageId);
+              let tempPack = {
+                id: pack.id,
+                packagePackageId: pack.packagePackageId,
+                userEmailId: pack.userEmailId,
+                created_by: pack.created_by,
+                created_at: pack.created_at,
+                updated_by: pack.updated_by,
+                updated_at: pack.updated_at,
+                status: pack.status
+              }
 
-            let m = {}
-            if (!e) {
-              //res.status(200).json({code:201, error:'no package found'});
-            } else {
-              let arr = []
-              let count = 0
-              //console.log("🚀 ~ file: packageRoute.js ~ line 157 ~ packages.findOne ~ e", e)
-              m.packageId = e.packageId
-              //m.users = e.user_course
-              m.name = e.PackageName
-              m.price = e.Packageprice
-              m.PackageDesc = e.PackageDesc
-              m.CourseId = e.courseCourseId
-              m.thumbnail = e.thumbnail
-              m.questionCount = e.TestList && e.TestList.map(j => j.Section && j.Section.map(k => count += k.QuestionList.length))
-              m.TestList = e.TestList
-              arr.push(m);
-              count = 0;
+              if (pack.status == 1) {
+                await packages.findOne({
+                  attributes: ['packageId', 'PackageName'],
+                  where: {packageId: pack.packagePackageId}
+                })
+                    .then((e) => {
+
+                      let m = {}
+                      if (!e) {
+                        //res.status(200).json({code:201, error:'no package found'});
+                      } else {
+                        let arr = []
+                        let count = 0
+                        //console.log("🚀 ~ file: packageRoute.js ~ line 157 ~ packages.findOne ~ e", e)
+                        m.packageId = e.packageId
+                        //m.users = e.user_course
+                        m.name = e.PackageName
+                        m.price = e.Packageprice
+                        m.PackageDesc = e.PackageDesc
+                        m.CourseId = e.courseCourseId
+                        m.thumbnail = e.thumbnail
+                        m.questionCount = e.TestList && e.TestList.map(j => j.Section && j.Section.map(k => count += k.QuestionList.length))
+                        m.TestList = e.TestList
+                        arr.push(m);
+                        count = 0;
+                      }
+                      tempPack.pack_details = m;
+                      result.push(tempPack);
+
+                    });
+              }
+
             }
-            tempPack.pack_details = m;
-            result.push(tempPack);  
+            res.status(200).json({code: 200, data: result});
+          }
 
-          });
-          
-        }
-        res.status(200).json({code:200, data: result});
-      }
-
-    });
+        });
   });
 
   // for testing...
@@ -1036,7 +1061,68 @@ module.exports = (app, db) => {
     return {myTotalTests};
   }
 
-  
+
+  app.get("/getPackagesInfoByUserId/:packageId/:userId",async (req,res) => {
+
+    userPackages.findOne({where: {userEmailId: req.params.userId,packagePackageId:req.params.packageId}, order: [["updated_at", "DESC"]]})
+        .then(async (userpackages) => {
+          //console.log("userpackages --", userpackages[0]);
+          if (!userpackages) {
+            res.status(200).json({code: 201, error: 'no package found'});
+          } else {
+
+            let tempPack = {
+              id: userpackages.id,
+              packagePackageId: userpackages.packagePackageId,
+              userEmailId: userpackages.userEmailId,
+              created_by: userpackages.created_by,
+              created_at: userpackages.created_at,
+              updated_by: userpackages.updated_by,
+              updated_at: userpackages.updated_at,
+              status: userpackages.status
+            }
+
+            if (userpackages.status == 1) {
+
+              await packages.findOne({
+                where: {packageId: req.params.packageId}
+              })
+                  .then((e) => {
+
+                    let m = {}
+                    if (!e) {
+                      //res.status(200).json({code:201, error:'no package found'});
+                    } else {
+                      let arr = []
+                      let count = 0
+                      //console.log("🚀 ~ file: packageRoute.js ~ line 157 ~ packages.findOne ~ e", e)
+                      m.packageId = e.packageId
+                      //m.users = e.user_course
+                      m.name = e.PackageName
+                      m.price = e.Packageprice
+                      m.PackageDesc = e.PackageDesc
+                      m.CourseId = e.courseCourseId
+                      m.thumbnail = e.thumbnail
+                      m.TestList = e.TestList
+                      arr.push(m);
+                      count = 0;
+                    }
+                    tempPack.pack_details = m;
+
+                  });
+
+              res.status(200).json({code: 200, data: tempPack});
+
+            }else {
+              res.status(200).json({code: 201, error: 'package status false'});
+
+            }
+
+          }
+        });
+
+
+  });
 
 
 
