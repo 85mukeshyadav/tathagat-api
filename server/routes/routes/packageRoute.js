@@ -5,11 +5,12 @@ const router = express.Router();
 const { protect, authorize } = require('../../middleware/auth');
 const user_course = require('../../models/user_course');
 const { Op } = require("sequelize");
+const {getCourses} = require("../../helper/helper");
 
 module.exports = (app, db) => {
 
   const { chapters, course, topic, packages, subject, orderlist, video, user_course,
-    sequelize,userPackages, Test } = db;
+    sequelize,userPackages, Test ,courses } = db;
 
     app.post('/createpackage', (req, res) => {
 
@@ -156,31 +157,36 @@ module.exports = (app, db) => {
       }
     });
   });
-  
+
   app.get('/getrndmpkg', (req, res) => {
-    const { packages } = db;
-    packages.findAll({ where: {show_to_all: 1} }).then((e) => {
+    const {packages} = db;
+    packages.findAll({where: {show_to_all: 1}}).then(async (e) => {
       if (!e) {
         res.json('no package found');
       } else {
         let arr = []
         let count = 0
-        
-        e && e.map(i => {
+
+
+        for (var i of e) {
           let m = {}
-          console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",i)
+          req.db = db
+          req.params.courseCourseId = i.courseCourseId;
+          var courseName = await getCourses(req);
+          console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", i)
           m.packageId = i.packageId
           m.name = i.PackageName;
-          m.price = i.Packageprice;
+          m.price = i.PackagePrice;
           m.thumbnail = i.thumbnail;
-         // m.questionCount = i.TestList && i.TestList.map(j => j.Section && j.Section.map(k => count += k.QuestionList.length))
+          m.courseName = courseName.courseName
+          // m.questionCount = i.TestList && i.TestList.map(j => j.Section && j.Section.map(k => count += k.QuestionList.length))
           m.questionCount = count
           //m.TestList = i.TestList
           m.payment_url = i.payment_url
           arr.push(m)
           count = 0
           m = {}
-        })
+        }
         res.status(200).json(arr);
       }
     });

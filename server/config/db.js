@@ -37,6 +37,8 @@ const blog = require('../models/blog.js')(sequelize, Sequelize);
 const chapters = require('../models/chapters.js')(sequelize, Sequelize);
 // const questions = require('../models/questions.js')(sequelize, Sequelize);
 const course = require('../models/course.js')(sequelize, Sequelize);
+const courses = require('../models/courses.js')(sequelize, Sequelize);
+
 const users = require('../models/users.js')(sequelize, Sequelize);
 const admin = require('../models/admin.js')(sequelize, Sequelize);
 const Test = require('../models/Test.js')(sequelize, Sequelize);
@@ -147,6 +149,6 @@ module.exports = {
   testType,
   sequelize,
   userPackages,
-  testAttempted
-
+  testAttempted,
+  courses
 };
