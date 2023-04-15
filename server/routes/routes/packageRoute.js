@@ -762,6 +762,8 @@ module.exports = (app, db) => {
     sqlQuery +=" LEFT JOIN  chapters as chp ON chp.chapterId = pkg.chapterChapterId ";
     sqlQuery +=" LEFT JOIN  topics as tpc ON tpc.topicId = pkg.topicId ";
     sqlQuery += " WHERE up.userEmailId = '"+req.body.userId+"'";
+    sqlQuery += " AND up.status=1";
+
 
     let upkResult = await sequelize.query(sqlQuery, { 
       type: sequelize.QueryTypes.SELECT 
