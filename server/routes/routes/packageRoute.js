@@ -120,7 +120,7 @@ module.exports = (app, db) => {
 
   app.get('/getallpackages', (req, res) => {
     const { packages, user_course } = db;
-    packages.findAll({}).then((e) => {
+    packages.findAll({}).then(async (e) => {
       if (!e) {
         res.json('no package found');
       } else {
@@ -128,15 +128,21 @@ module.exports = (app, db) => {
         let arr = []
         let count = 0
 
-        e && e.map(i => {
+        for (var i of e) {
+
+          req.db = db
+          req.params.courseCourseId = i.courseCourseId;
+          var courseName = await getCourses(req);
+
           let m = {}
           m.packageId = i.packageId
           m.users = i.users;
           m.name = i.PackageName;
           //m.users = i.user_course;
-          m.price = i.Packageprice;
+          m.price = i.PackagePrice;
           m.payment_url = i.payment_url;
           m.packageDetails = i.PackageDesc;
+          m.courseName = courseName.courseName?courseName.courseName:""
           m.thumbnail = i.thumbnail;
           m.questionCount = i.TestList && i.TestList.map(j => j.Section && j.Section.map(k => count += k.QuestionList.length))
           m.questionCount = count;
@@ -150,7 +156,7 @@ module.exports = (app, db) => {
           arr.push(m);
           count = 0;
           m = {};
-        })
+        }
 
         console.log("m here to test..");
         res.status(200).json(arr);

@@ -11,6 +11,8 @@ module.exports = {
                     console.log(s)
                     if (s) {
                         resolve(s)
+                    }else {
+                        resolve({})
                     }
                 });
         })
