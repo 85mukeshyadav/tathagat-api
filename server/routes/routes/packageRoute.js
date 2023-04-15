@@ -762,6 +762,8 @@ module.exports = (app, db) => {
     sqlQuery +=" LEFT JOIN  chapters as chp ON chp.chapterId = pkg.chapterChapterId ";
     sqlQuery +=" LEFT JOIN  topics as tpc ON tpc.topicId = pkg.topicId ";
     sqlQuery += " WHERE up.userEmailId = '"+req.body.userId+"'";
+    sqlQuery += " AND up.status=1";
+
 
     let upkResult = await sequelize.query(sqlQuery, { 
       type: sequelize.QueryTypes.SELECT 
@@ -888,6 +890,8 @@ module.exports = (app, db) => {
       let testResult = await sequelize.query(sqlQuery, {type: sequelize.QueryTypes.SELECT});
       let subId = [];
       let totalTests = testId.length;
+      return {"testDetails":testResult, "pckDetails": result[0], "totalTests":totalTests};
+
     }
     // testResult = testResult.map((d,i)=>{
     //   return {
@@ -966,7 +970,6 @@ module.exports = (app, db) => {
         // return d;
       // })
       
-    return {"testDetails":testResult, "pckDetails": result[0], "totalTests":totalTests}; 
   }
 
   async function getTestList(params){
