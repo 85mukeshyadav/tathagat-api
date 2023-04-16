@@ -40,7 +40,7 @@ module.exports = {
         return new Promise(async (resolve) => {
 
             const {userPackages} = req.db;
-            userPackages.findAll({where: {userEmailId: req.params.userId,status:1}, order: [["updated_at", "DESC"]]})
+            userPackages.findAll({where: {userEmailId: req.params.userId,status:1,packagePackageId:req.params.PackageId}, order: [["updated_at", "DESC"]]})
                 .then(async (userpackages) => {
                     //console.log("userpackages --", userpackages[0]);
                     if (!userpackages) {
