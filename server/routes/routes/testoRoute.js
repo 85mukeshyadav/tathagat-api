@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 
 const { protect, authorize } = require('../../middleware/auth');
+const {getPackageUserID, getPackageInfo} = require("../../helper/helper");
 
 module.exports = (app, db) => {
   const { subject, course, topic, chapters, Test,questions, packages, testType, testAttempted,users,
@@ -701,6 +702,43 @@ module.exports = (app, db) => {
   });
 
 
+  app.get('/gettest/:testId/:userId', (req, res) => {
+    Test.findAll({
+      where: {
+        Test_Id: req.params.testId,
+        //PackagePrice:'0'
+      }
+    }).then(async (s, err) => {
+      let arr = []
+      if (s) {
+        var userTast = false
+        req.db = db
+        var packageList = await getPackageUserID(req);
+        if(packageList.length > 0){
+          for(var package of packageList){
+            req.params.packageId  = package.packagePackageId
+            var packageInfo = await getPackageInfo(req);
+            if(packageInfo != null){
+              let filter = packageInfo.TestList.filter(d => d.TestId == req.params.testId)
+              console.log(filter)
+              if(filter.length >0){
+                console.log(userTast)
+                userTast = true
+              }
+            }
+
+          }
+        }
+        console.log(userTast)
+        if(userTast){
+          res.status(200).send(s)
+        }else {
+
+          res.status(201).send("no access test ")
+        }
+      }
+    })
+  });
 
 
 };
