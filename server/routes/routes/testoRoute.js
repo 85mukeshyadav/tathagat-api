@@ -702,7 +702,7 @@ module.exports = (app, db) => {
   });
 
 
-  app.get('/gettest/:testId/:userId', (req, res) => {
+  app.get('/gettest/:testId/:userId/:PackageId', (req, res) => {
     Test.findAll({
       where: {
         Test_Id: req.params.testId,
@@ -719,6 +719,7 @@ module.exports = (app, db) => {
             req.params.packageId  = package.packagePackageId
             var packageInfo = await getPackageInfo(req);
             if(packageInfo != null){
+              console.log(package.packagePackageId)
               let filter = packageInfo.TestList.filter(d => d.TestId == req.params.testId)
               console.log(filter)
               if(filter.length >0){
@@ -734,7 +735,7 @@ module.exports = (app, db) => {
           res.status(200).send(s)
         }else {
 
-          res.status(201).send("no access test ")
+          res.status(404).send("no access test ")
         }
       }
     })
