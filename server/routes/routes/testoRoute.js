@@ -89,7 +89,8 @@ module.exports = (app, db) => {
       chapterChapterId: req.body.chapterId,
       courseCourseId: req.body.courseId,
       SectionRule: req.body.rule,
-      Section: req.body.Section
+      Section: req.body.Section,
+      instructions: req.body.instructions
     }).then((s) => {
       if (s) {
         res.status(200).send(s);
