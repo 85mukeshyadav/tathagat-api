@@ -89,7 +89,8 @@ module.exports = (app, db) => {
       chapterChapterId: req.body.chapterId,
       courseCourseId: req.body.courseId,
       SectionRule: req.body.rule,
-      Section: req.body.Section
+      Section: req.body.Section,
+      instructions: req.body.instructions
     }).then((s) => {
       if (s) {
         res.status(200).send(s);
@@ -442,7 +443,7 @@ module.exports = (app, db) => {
     const {sequelize } = db;
     if(req.body) {
       let body = req.body
-      let sqlQuery = "SELECT tst.subjectId, tst.topicId, tst.chapterChapterId, tst.packagePackageId, tst.sorting_order, tst.Test_Id, tst.created_at, tst.SectionRule, tst.totaltime, tst.courseCourseId, tst.TestTitle, tst.exam_type, tst.examLevel, cou.courseName,sub.subjectName, chp.chapterName, tpc.topicName, testAtm.attempt_id FROM Test as tst ";
+      let sqlQuery = "SELECT tst.subjectId, tst.topicId, tst.chapterChapterId, tst.packagePackageId, tst.sorting_order, tst.Test_Id, tst.created_at, tst.SectionRule, tst.totaltime, tst.courseCourseId, tst.TestTitle, tst.exam_type, tst.examLevel, tst.instructions, cou.courseName,sub.subjectName, chp.chapterName, tpc.topicName, testAtm.attempt_id FROM Test as tst ";
       sqlQuery +=" INNER JOIN  courses as cou ON cou.courseId = tst.courseCourseId ";
       sqlQuery +=" LEFT JOIN  subjects as sub ON sub.subjectId = tst.subjectId ";
       sqlQuery +=" LEFT JOIN  chapters as chp ON chp.chapterId = tst.chapterChapterId ";
@@ -702,7 +703,7 @@ module.exports = (app, db) => {
   });
 
 
-  app.get('/gettest/:testId/:userId', (req, res) => {
+  app.get('/gettest/:testId/:userId/:PackageId', (req, res) => {
     Test.findAll({
       where: {
         Test_Id: req.params.testId,
@@ -719,6 +720,7 @@ module.exports = (app, db) => {
             req.params.packageId  = package.packagePackageId
             var packageInfo = await getPackageInfo(req);
             if(packageInfo != null){
+              console.log(package.packagePackageId)
               let filter = packageInfo.TestList.filter(d => d.TestId == req.params.testId)
               console.log(filter)
               if(filter.length >0){
@@ -734,7 +736,7 @@ module.exports = (app, db) => {
           res.status(200).send(s)
         }else {
 
-          res.status(201).send("no access test ")
+          res.status(404).send("no access test ")
         }
       }
     })

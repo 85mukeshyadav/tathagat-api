@@ -86,7 +86,16 @@ module.exports = sequelize => {
       type: DataTypes.INTEGER,
       defaultValue: 0,
       field: "sorting_order"
-    }
+    },
+    instructions: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      defaultValue: null,
+      primaryKey: false,
+      autoIncrement: false,
+      comment: null,
+      field: "instructions"
+    },
 
     //
   };
