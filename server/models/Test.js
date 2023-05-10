@@ -88,7 +88,7 @@ module.exports = sequelize => {
       field: "sorting_order"
     },
     instructions: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.TEXT,
       allowNull: true,
       defaultValue: null,
       primaryKey: false,
