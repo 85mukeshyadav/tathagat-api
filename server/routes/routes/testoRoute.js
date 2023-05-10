@@ -163,8 +163,10 @@ module.exports = (app, db) => {
     //   }
     // });
     let result = await sequelize.query(sqlQuery, {type: sequelize.QueryTypes.SELECT});
+    console.log("result",result)
     //for (data of result){
-      //data.Section = JSON.parse(data.Section);
+     // data.Section = JSON.parse(data.Section);
+
     //}
     //console.log("query result ===", result);
     res.status(200).send(result);

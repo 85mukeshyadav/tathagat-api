@@ -189,6 +189,7 @@ module.exports = (app, db) => {
           m.questionCount = count
           //m.TestList = i.TestList
           m.payment_url = i.payment_url
+          m.officialDesc = i.officialDesc
           arr.push(m)
           count = 0
           m = {}
