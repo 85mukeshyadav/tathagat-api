@@ -9,6 +9,7 @@ const testoRoutes = require('./routes/testoRoute');
 const testRoutes = require('./routes/testRoute');
 const topicRoutes = require('./routes/topicRoute');
 const blogsRoute = require('./routes/blogsRoute');
+const userQuestionsBookmark = require('./routes/userQuestionsBookmark');
 
 // Add access to the app and db objects to each route
 
@@ -52,6 +53,11 @@ function blogsroute(app, db) {
   return blogsRoute(app, db);
 }
 
+function userquestionsbookmark (app, db) {
+  return userQuestionsBookmark(app, db);
+}
+
+
 module.exports = {
   chapterrouter,
   topicrouter,
@@ -63,5 +69,6 @@ module.exports = {
   courserouter,
   authrouter,
   subjectrouter,
-  blogsroute
+  blogsroute,
+  userquestionsbookmark
 };
