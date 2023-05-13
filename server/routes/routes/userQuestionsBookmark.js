@@ -1,19 +1,34 @@
 const express = require('express');
 
 const {protect, authorize} = require('../../middleware/auth');
+const {getQueInfo, getPackageInfo} = require("../../helper/helper");
 
 module.exports = (app, db) => {
     const {userQuestionsBookmark, question, topic, chapter} = db;
     app.get('/userbookmarklist/:userEmailId', protect, function (req, res) {
-
+        req.db = db
         userQuestionsBookmark.findAll({
             where: {
-                userEmailId: req.params.userEmailId
+                userEmailId: req.params.userEmailId,
+                status: 1,
             }
-        }).then((s, err) => {
+        }).then(async (s, err) => {
             if (s) {
-                console.log(s)
-                res.status(200).send({status: 200, data: s})
+                var index = 0
+                var bookmarkList =[]
+                for (var que of s) {
+                    req.params.questionId = que.questionsId
+                    req.params.testId = que.testId
+                    var info = await getQueInfo(req);
+                    console.log("info",info)
+                    if(info != null){
+                        bookmarkList.push({questions_info:info,other_info: s[index]})
+                    }
+                    index++
+                }
+
+                console.log(bookmarkList)
+                res.status(200).send({status: 200, data: bookmarkList})
             } else {
                 console.log(err)
                 res.status(200).send({status: 400, eroor: err})
