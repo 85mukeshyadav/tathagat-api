@@ -9,20 +9,19 @@ module.exports = (app, db) => {
         req.db = db
         userQuestionsBookmark.findAll({
             where: {
-                userEmailId: req.params.userEmailId,
-                status: 1,
+                userEmailId: req.params.userEmailId, status: 1,
             }
         }).then(async (s, err) => {
             if (s) {
                 var index = 0
-                var bookmarkList =[]
+                var bookmarkList = []
                 for (var que of s) {
                     req.params.questionId = que.questionsId
                     req.params.testId = que.testId
                     var info = await getQueInfo(req);
-                    console.log("info",info)
-                    if(info != null){
-                        bookmarkList.push({questions_info:info,other_info: s[index]})
+                    console.log("info", info)
+                    if (info != null) {
+                        bookmarkList.push({questions_info: info, other_info: s[index]})
                     }
                     index++
                 }
@@ -40,16 +39,41 @@ module.exports = (app, db) => {
 
     app.post('/addbookmark', (req, res) => {
         console.log("file: addbookmark", req.body, req.body.userEmailId)
-        userQuestionsBookmark.create({
-            testId  : req.body.testId  ,
-            userEmailId : req.body.userEmailId,
-            questionsId: req.body.questionsId,
-            status : req.body.status ,
-        }).then((s) => {
-            if (s) {
-                res.status(200).send(s);
-            }
-        })
+        userQuestionsBookmark.findOne({where: {chapterId: req.params.chapterId}})
+            .then((exist) => {
+                console.log(exist);
+                if (!exist) {
+                    userQuestionsBookmark.create({
+                        testId: req.body.testId,
+                        userEmailId: req.body.userEmailId,
+                        questionsId: req.body.questionsId,
+                        status: req.body.status,
+                    }).then((s) => {
+                        if (s) {
+                            res.status(200).send(s);
+                        }
+                    })
+
+                } else {
+
+                    userQuestionsBookmark.update({
+                        testId: req.body.testId,
+                        userEmailId: req.body.userEmailId,
+                        questionsId: req.body.questionsId,
+                        status: req.body.status,}, {
+                        where: {
+                            testId: req.body.testId,
+                            userEmailId: req.body.userEmailId,
+                            questionsId: req.body.questionsId,
+                            status: req.body.status,
+                        }
+                    }).then((bookmark) => {
+                            res.status(200).send(bookmark);
+                    });
+                }
+            });
+
+
     });
 
 };
