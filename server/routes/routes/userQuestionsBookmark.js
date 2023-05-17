@@ -39,9 +39,13 @@ module.exports = (app, db) => {
 
     app.post('/addbookmark', (req, res) => {
         console.log("file: addbookmark", req.body, req.body.userEmailId)
-        userQuestionsBookmark.findOne({where: {chapterId: req.params.chapterId}})
+        userQuestionsBookmark.findOne({where: {
+                testId: req.body.testId,
+                userEmailId: req.body.userEmailId,
+                questionsId: req.body.questionsId,
+            }})
             .then((exist) => {
-                console.log(exist);
+                console.log("exist",exist);
                 if (!exist) {
                     userQuestionsBookmark.create({
                         testId: req.body.testId,
@@ -50,7 +54,7 @@ module.exports = (app, db) => {
                         status: req.body.status,
                     }).then((s) => {
                         if (s) {
-                            res.status(200).send(s);
+                            res.status(200).send({status: 200, message: "done"});
                         }
                     })
 
@@ -65,10 +69,9 @@ module.exports = (app, db) => {
                             testId: req.body.testId,
                             userEmailId: req.body.userEmailId,
                             questionsId: req.body.questionsId,
-                            status: req.body.status,
                         }
                     }).then((bookmark) => {
-                            res.status(200).send(bookmark);
+                            res.status(200).send({status: 200, message: "Update Done"});
                     });
                 }
             });
