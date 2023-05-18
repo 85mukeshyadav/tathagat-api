@@ -65,5 +65,24 @@ module.exports = {
                     }
                 });
         });
+    },
+
+
+    getQueInfo :function (req){
+      return new Promise(async (resolve) =>{
+          const {questions} = req.db;
+          questions.findOne({ where: { questionId: req.params.questionId } })
+              .then((s) => {
+                  if (!s) {
+                      resolve(null);
+                  }else {
+                      resolve(s)
+                  }
+              });
+
+
+      });
+
     }
+
 }

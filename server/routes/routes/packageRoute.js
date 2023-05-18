@@ -884,7 +884,7 @@ module.exports = (app, db) => {
         testId.push(s);
       })
 
-      let sqlQuery = "SELECT tst.	Test_Id, tst.subjectId, cou.courseName,sub.subjectName, chp.chapterName, tpc.topicName, testAtm.attempt_id FROM Test as tst ";
+      let sqlQuery = "SELECT tst.TestTitle, tst.Test_Id, tst.subjectId, cou.courseName,sub.subjectName, chp.chapterName, tpc.topicName, testAtm.attempt_id FROM Test as tst ";
       sqlQuery +=" INNER JOIN  courses as cou ON cou.courseId = tst.courseCourseId ";
       sqlQuery +=" LEFT JOIN  subjects as sub ON sub.subjectId = tst.subjectId ";
       sqlQuery +=" LEFT JOIN  chapters as chp ON chp.chapterId = tst.chapterChapterId ";

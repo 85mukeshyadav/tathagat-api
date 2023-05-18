@@ -52,6 +52,8 @@ const student = require('../models/student.js')(sequelize, Sequelize);
 const testType = require('../models/test_type.js')(sequelize, Sequelize);
 const userPackages = require('../models/user_packages.js')(sequelize, Sequelize);
 const testAttempted = require('../models/test_attempted.js')(sequelize, Sequelize);
+const userQuestionsBookmark = require('../models/user_questions_bookmark.js')(sequelize, Sequelize);
+
 
 subject.belongsTo(course);
 subject.hasMany(orderlist, { as: 'list' });
@@ -100,6 +102,8 @@ users.hasMany(user_course);
 //userPackages.hasMany(users);
 //users.hasMany(userPackages);
 //packages.hasMany(userPackages);
+
+
 
 sequelize
   .authenticate()
@@ -150,5 +154,6 @@ module.exports = {
   sequelize,
   userPackages,
   testAttempted,
-  courses
+  courses,
+  userQuestionsBookmark
 };

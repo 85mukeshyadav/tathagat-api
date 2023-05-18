@@ -33,6 +33,7 @@ router.courserouter(app, db);
 router.subjectrouter(app, db);
 router.authrouter(app, db);
 router.blogsroute(app, db);
+router.userquestionsbookmark(app, db);
 
 // server
 const port = process.env.PORT || 3000;
