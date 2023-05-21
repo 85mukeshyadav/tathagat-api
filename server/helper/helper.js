@@ -83,6 +83,30 @@ module.exports = {
 
       });
 
+    },
+
+    getBookmarkQue: function (req) {
+        return new Promise(async (resolve) => {
+            const {userQuestionsBookmark} = req.db;
+            console.log({
+                testId: req.body.testId,
+                userEmailId: req.body.userEmailId,
+            })
+            userQuestionsBookmark.findAll({
+                where: {
+                    testId: req.body.testId,
+                    userEmailId: req.body.userEmailId,
+                }
+            }).then(async (s) => {
+                console.log(s)
+                if (s) {
+                    resolve(s)
+                } else {
+                    resolve({})
+                }
+            });
+        });
+
     }
 
 }
