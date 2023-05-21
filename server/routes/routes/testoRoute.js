@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 
 const { protect, authorize } = require('../../middleware/auth');
-const {getPackageUserID, getPackageInfo} = require("../../helper/helper");
+const {getPackageUserID, getPackageInfo, getBookmarkQue} = require("../../helper/helper");
 
 module.exports = (app, db) => {
   const { subject, course, topic, chapters, Test,questions, packages, testType, testAttempted,users,
@@ -323,9 +323,28 @@ module.exports = (app, db) => {
                 s.testResult.section[secIndex] = secData;
                 secIndex++
               }
-              
               console.log("sec Score == ", secScore);
               result = s.testResult
+              req.db = db
+              req.body.userEmailId = req.body.userId
+              var QueBookmark = await getBookmarkQue(req);
+
+              var sectionIndex = 0;
+              for(var section of result.section) {
+                var index = 0;
+                for (var que of section.question) {
+                  await QueBookmark.forEach(obj => {
+                    if (obj.questionsId.toString() === que.questionId.toString()) {
+                      result.section[sectionIndex].question[index]["bookmark"] = true;
+                    } else {
+                      result.section[sectionIndex].question[index]["bookmark"] = false;
+                    }
+                  });
+
+                  index++
+                }
+                sectionIndex ++
+              }
             }
             res.status(200).send(result);
         }).catch((err)=>{
