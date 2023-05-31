@@ -5,7 +5,7 @@ const {getQueInfo, getPackageInfo} = require("../../helper/helper");
 
 module.exports = (app, db) => {
     const {userQuestionsBookmark, question, topic, chapter} = db;
-    app.get('/userbookmarklist/:userEmailId', protect, function (req, res) {
+    app.get('/userbookmarklist/:userEmailId', function (req, res) {
         req.db = db
         userQuestionsBookmark.findAll({
             where: {
@@ -26,7 +26,7 @@ module.exports = (app, db) => {
                     index++
                 }
 
-                console.log(bookmarkList)
+                console.log("bookmarkList",bookmarkList)
                 res.status(200).send({status: 200, data: bookmarkList})
             } else {
                 console.log(err)
