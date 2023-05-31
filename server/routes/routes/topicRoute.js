@@ -1,5 +1,6 @@
 const express = require('express');
 const { protect, authorize } = require('../../middleware/auth');
+const cors = require("cors");
 
 module.exports = (app, db) => {
   const { topic, video, subject, orderlist, Test, chapters } = db;

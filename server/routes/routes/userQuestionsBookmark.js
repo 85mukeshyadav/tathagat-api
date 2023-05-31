@@ -2,10 +2,11 @@ const express = require('express');
 
 const {protect, authorize} = require('../../middleware/auth');
 const {getQueInfo, getPackageInfo} = require("../../helper/helper");
+const cors = require("cors");
 
 module.exports = (app, db) => {
     const {userQuestionsBookmark, question, topic, chapter} = db;
-    app.get('/userbookmarklist/:userEmailId', function (req, res) {
+    app.get('/userbookmarklist/:userEmailId', cors(),function (req, res) {
         req.db = db
         userQuestionsBookmark.findAll({
             where: {
