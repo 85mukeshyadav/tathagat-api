@@ -96,6 +96,7 @@ module.exports = {
                 where: {
                     testId: req.body.testId,
                     userEmailId: req.body.userEmailId,
+                    status :1
                 }
             }).then(async (s) => {
                 console.log(s)
