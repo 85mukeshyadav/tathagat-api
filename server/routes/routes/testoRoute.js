@@ -300,8 +300,8 @@ module.exports = (app, db) => {
         //let selectColumns = ["userId", "testId", "packageId","JSON_EXTRACT(testResult, '$.netScore') as score"];
         let selectColumns = ["userId", "testId", "packageId","JSON_EXTRACT(testResult, '$.netScore') as score"];
         //console.log("zzzzz",params)
-        //wahereClouse = {where: {"userId":params.userId, "testId":params.testId, "packageId":params.packageId}}
-        wahereClouse = {where: {"userId":params.userId, "testId":params.testId}}
+        wahereClouse = {where: {"userId":params.userId, "testId":params.testId, "packageId":params.packageId}}
+        //wahereClouse = {where: {"userId":params.userId, "testId":params.testId}}
         testAttempted.findOne(wahereClouse).then(async(s) => {
             let result = {};
             if(s && typeof s.testResult !="undefined"){
