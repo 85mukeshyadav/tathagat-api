@@ -300,8 +300,8 @@ module.exports = (app, db) => {
         //let selectColumns = ["userId", "testId", "packageId","JSON_EXTRACT(testResult, '$.netScore') as score"];
         let selectColumns = ["userId", "testId", "packageId","JSON_EXTRACT(testResult, '$.netScore') as score"];
         //console.log("zzzzz",params)
-        //wahereClouse = {where: {"userId":params.userId, "testId":params.testId, "packageId":params.packageId}}
-        wahereClouse = {where: {"userId":params.userId, "testId":params.testId}}
+        wahereClouse = {where: {"userId":params.userId, "testId":params.testId, "packageId":params.packageId}}
+        //wahereClouse = {where: {"userId":params.userId, "testId":params.testId}}
         testAttempted.findOne(wahereClouse).then(async(s) => {
             let result = {};
             if(s && typeof s.testResult !="undefined"){
@@ -321,6 +321,20 @@ module.exports = (app, db) => {
                 secData.percentile = secScore.percentile;
                 secData.sectionNum = secScore.sectionNum;
                 s.testResult.section[secIndex] = secData;
+
+                var avgSpentTime = 0
+                var avgCorrentSpentTime = 0
+                for(var que of secData.question){
+                  avgSpentTime = avgSpentTime +parseInt(que.timeTaken)
+                  if(que.answerStatus == "C"){
+                    avgCorrentSpentTime = avgCorrentSpentTime + parseInt(que.timeTaken)
+                  }
+                }
+                console.log(avgSpentTime)
+                avgSpentTime = avgSpentTime/secData.question.length
+                avgCorrentSpentTime = avgCorrentSpentTime/secData.correctAnswers
+                s.testResult.section[secIndex]["avgSpentTime"] = avgSpentTime;
+                s.testResult.section[secIndex]["avgCorrentSpentTime"] = avgCorrentSpentTime;
                 secIndex++
               }
               console.log("sec Score == ", secScore);
