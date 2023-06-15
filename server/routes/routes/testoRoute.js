@@ -321,6 +321,20 @@ module.exports = (app, db) => {
                 secData.percentile = secScore.percentile;
                 secData.sectionNum = secScore.sectionNum;
                 s.testResult.section[secIndex] = secData;
+
+                var avgSpentTime = 0
+                var avgCorrentSpentTime = 0
+                for(var que of secData.question){
+                  avgSpentTime = avgSpentTime +parseInt(que.timeTaken)
+                  if(que.answerStatus == "C"){
+                    avgCorrentSpentTime = avgCorrentSpentTime + parseInt(que.timeTaken)
+                  }
+                }
+                console.log(avgSpentTime)
+                avgSpentTime = avgSpentTime/secData.question.length
+                avgCorrentSpentTime = avgCorrentSpentTime/secData.correctAnswers
+                s.testResult.section[secIndex]["avgSpentTime"] = avgSpentTime;
+                s.testResult.section[secIndex]["avgCorrentSpentTime"] = avgCorrentSpentTime;
                 secIndex++
               }
               console.log("sec Score == ", secScore);
