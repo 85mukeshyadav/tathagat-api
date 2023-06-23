@@ -343,15 +343,17 @@ module.exports = (app, db) => {
               req.body.userEmailId = req.body.userId
               var QueBookmark = await getBookmarkQue(req);
 
+              console.log(QueBookmark)
+
               var sectionIndex = 0;
               for(var section of result.section) {
                 var index = 0;
                 for (var que of section.question) {
+                  result.section[sectionIndex].question[index]["bookmark"] = false;
                   await QueBookmark.forEach(obj => {
+                    console.log(obj.questionsId.toString() , que.questionId.toString(), (obj.questionsId.toString() === que.questionId.toString()),index,sectionIndex)
                     if (obj.questionsId.toString() === que.questionId.toString()) {
                       result.section[sectionIndex].question[index]["bookmark"] = true;
-                    } else {
-                      result.section[sectionIndex].question[index]["bookmark"] = false;
                     }
                   });
 
@@ -360,6 +362,7 @@ module.exports = (app, db) => {
                 sectionIndex ++
               }
             }
+            console.log("sadcas")
             res.status(200).send(result);
         }).catch((err)=>{
           console.log("vvvvv",err)

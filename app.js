@@ -36,6 +36,7 @@ router.authrouter(app, db);
 router.blogsroute(app, db);
 router.userquestionsbookmark(app, db);
 router.paymentrouter(app, db);
+router.analysisrouter(app,db)
 
 // server
 const port = process.env.PORT || 3000;
