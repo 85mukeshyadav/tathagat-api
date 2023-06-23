@@ -1,0 +1,281 @@
+const express = require('express');
+
+const {protect, authorize} = require('../../middleware/auth');
+const {getQueInfo, getPackageInfo} = require("../../helper/helper");
+const cors = require("cors");
+const { Op } = require('sequelize');
+
+
+
+module.exports = (app, db) => {
+    const { subject, course, topic, chapters, Test,questions, packages, testType, testAttempted,users, testSectionResult, testQuestionResult } = db;
+
+    async function getUserTestPercentile(params){
+        const usercount = await users.count({
+            where: { user_type: "student" },
+        });
+        let userId = params.userId;
+        let testId = params.testId;
+        let packageId = params.packageId;
+        let scoreData = await getUserTestRank(params);
+        let test_score = scoreData.test_score;
+        let rank = parseInt(scoreData.rank);
+        let totalEnrolledStudent = parseInt(usercount)
+        let percentile = (totalEnrolledStudent - rank + 1)/totalEnrolledStudent*100;
+        let result = {userId,testId,packageId, test_score, rank, percentile,totalEnrolledStudent }
+        return result;
+    };
+    async function getTestSectionPercentile(params, sec=1){
+
+        const usercount = await users.count({
+            where: { user_type: "student" },
+        });
+
+        let userId = params.userId;
+        let testId = params.testId;
+        let packageId = params.packageId;
+        let scoreData = await getTestSectionRank(params,sec);
+        let score = scoreData.score;
+        let rank = parseInt(scoreData.rank);
+        let totalEnrolledStudent = parseInt(usercount)
+        let percentile = (totalEnrolledStudent - rank + 1)/totalEnrolledStudent*100;
+        let sectionNum = sec;
+        let result = {userId, testId, packageId, sectionNum, score, rank, percentile, totalEnrolledStudent }
+        return result;
+    };
+    async function testSectionQuestions(params){
+        var result = [];
+        var qusArr = params.question;
+        var counter = 1;
+        let allTopicsData = await getTopicDataAll();
+        var questionDataAll = await getQuestionDataAAll();
+        for(var qusData of qusArr){
+            qusData.questionNumber = counter;
+            var ansStatus = 'Un-attempted';
+            if(qusData.answerStatus == 'C'){
+                ansStatus = 'Correct';
+            }else if(qusData.answerStatus == 'W'){
+                ansStatus = 'Incorrect';
+            }
+            qusData.answer_status = ansStatus;
+            qusData.topicName = "";
+
+
+            if(qusData.topicId){
+
+                var topicData = allTopicsData.find(topic => topic.Id==qusData.topicId);
+                qusData.topicName = topicData.topicName;
+            }
+            qusData.user_answer = "NA";
+            var user_answer = parseInt(qusData.usersAnswer)+1;
+            if(parseInt(user_answer)>0){
+                qusData.user_answer = user_answer;
+            }
+            qusData.correctoption = qusData.question = qusData.questionoption = "";
+            if(qusData.questionId){
+                var questionData = questionDataAll.find(qus => qus.questionId == qusData.questionId)
+                console.log(" -------------- questionData == ", questionData);
+                if(questionData){
+                    //qusData.question = questionData.question;
+                    //qusData.questionoption = questionData.questionoption;
+                    qusData.correctoption = questionData.correctoption;
+                }
+            }
+            counter++;
+            result.push(qusData);
+        }
+        return result;
+
+    }
+    async function testChapterReport(params,chapterData){
+        var chapResult = {};
+        var chpresult =[];
+        var chpIdArr = [];
+        var chpQusArr = params.question;
+        var chpQuestions = [];
+        var chapterDataAll = chapterData
+        for(var qusChp of chpQusArr){
+            if(qusChp.chapterChapterId){
+                var chapterData = chapterDataAll.find(chp => chp.chapterId == qusChp.chapterChapterId);
+                qusChp.chapterName = chapterData.chapterName;
+            }
+            chpIdArr.push(qusChp.chapterChapterId);
+            chpQuestions.push(qusChp)
+        }
+
+        const chpIds = [ ...new Set(chpIdArr)];
+        var chapResult =[];
+        var chpIndex = 0;
+        for(chapterId of chpIds){
+            var chpObj ={};
+            console.log("testChapterReport result in for == ", chapterId);
+            var totalQus = 0;
+            var rigthQues = 0;
+            var chapterName ="";
+            //chapResult[chapterId] = [];
+
+            for(var qusChpData of chpQuestions){
+                if(chapterId==qusChpData.chapterChapterId){
+                    totalQus++;
+                    if(qusChpData.answerStatus == 'C'){
+                        rigthQues++;
+                    }
+                    chapterName = qusChpData.chapterName;
+                }
+            }
+
+            var scale = (rigthQues*100)/totalQus;
+            scale = scale.toFixed(2);
+            scale = scale/10;
+            var remarks = await getRemarksForScale(scale);
+            chpObj = {chapterName: chapterName,totalQuestions: totalQus, rightQuestions: rigthQues, scale: scale, remarks:remarks};
+            //chapResult[chapterId].push(chpObj);
+            chapResult.push(chpObj);
+        }
+        return chapResult;
+    }
+    async function getUserTestRank(params){
+        const {sequelize } = db;
+        let rankQuery = "SELECT GROUP_CONCAT(score ORDER BY score DESC) FROM student_result ";
+        rankQuery +=" WHERE testId = '" + params.testId + "'";
+        //rankQuery +=" AND packageId = '"+ params.packageId +"'";
+
+        let aqlQuery = "SELECT userId, score as score, FIND_IN_SET( score, ("+rankQuery+")) AS rank FROM student_result ";
+        aqlQuery +=" WHERE testId = '" + params.testId + "' AND userId = '"+params.userId + "'";
+        aqlQuery +=" AND packageId = '" + params.packageId +"'";
+        //aqlQuery +=' ORDER BY netScore ASC';
+
+        console.log("aqlQuery  ------- ", aqlQuery);
+
+        let result = await sequelize.query(aqlQuery, {type: sequelize.QueryTypes.SELECT});
+        console.log("getUserRank JSON_EXTRACT ------- ", result);
+        console.log("JSON_EXTRACT END ------------------------------- ");
+        let resultSet  = [];
+        if(typeof result != "undefined"){
+            resultSet = result[0];
+        }
+        return resultSet;
+    };
+    async function getTestSectionRank(params,sec=1){
+        const {sequelize } = db;
+        let section_name = 'section'+sec+'_score';
+
+        let rankQuery = "SELECT GROUP_CONCAT("+section_name+" ORDER BY "+section_name+" DESC) FROM student_result ";
+        rankQuery +=" WHERE testId = '" + params.testId + "'";
+        //rankQuery +=" AND packageId = '"+ params.packageId +"'";
+
+        let aqlQuery = "SELECT userId, "+section_name+" as score, FIND_IN_SET( "+section_name+", ("+rankQuery+")) AS rank FROM student_result ";
+        aqlQuery +=" WHERE testId = '" + params.testId + "'";
+        aqlQuery +=" AND userId = '"+params.userId + "'";
+        //aqlQuery +=" AND packageId = '" + params.packageId +"'" ;
+
+        //aqlQuery +=' ORDER BY netScore ASC';
+
+        console.log("aqlQuery  ------- ", aqlQuery);
+
+        let result = await sequelize.query(aqlQuery, {type: sequelize.QueryTypes.SELECT});
+        console.log("getUserRank JSON_EXTRACT ------- ", result);
+        console.log("JSON_EXTRACT END ------------------------------- ");
+        let resultSet  = [];
+        if(typeof result != "undefined"){
+            resultSet = result[0];
+        }
+        return resultSet;
+    };
+    async function getTopicDataAll(){
+        return await topic.findAll({attributes:["Id", "topicName"]});
+    }
+    async function getQuestionDataAAll(){
+        return await questions.findAll({attributes:["questionId", "correctoption"]}); //, "question","questionoption"
+    }
+    async function getChapterDataAll(){
+        return await chapters.findAll({attributes:["chapterName","chapterId"]});
+    }
+    async function getRemarksForScale(scale){
+        let x = Math.round(scale);
+        var remarksMsg = ["Require Conceptual Clarity","Require more practice","Good to go"];
+        var index=0;
+        if(x<=4){
+            index = 0 ;
+        }else if(x>4 && x<=6){
+            index = 1 ;
+        }else if(x>6){
+            index = 2 ;
+        }
+        return remarksMsg[index];
+    }
+
+
+    app.post('/overallPerformanceSummary/', cors(),async function (req, res) {
+        req.db = db
+        if (typeof req.body != "undefined") {
+            let params = req.body;
+            var chapterDataAll = await getChapterDataAll();
+
+            console.log("chapterDataAll",chapterDataAll)
+            params.chapterData = chapterDataAll
+
+            if (typeof params.userId != "undefined") {
+                const startedDate = new Date(req.body.startDate + " 00:00:00");
+                const endDate = new Date(req.body.endDate + " 00:00:00");
+                let wahereClouse = {
+                    where: {
+                        "userId": params.userId,
+                        submitted_at: {[Op.between]: [startedDate, endDate]}
+                    }
+                }
+                console.log(wahereClouse)
+                var testSummary = []
+                testAttempted.findAll(wahereClouse).then(async (attemptResult) => {
+                    console.log(attemptResult.length)
+                    for (s of attemptResult) {
+                        s.testResult.attempt_id = s.attempt_id;
+                        var scoreData = await getUserTestPercentile(params);
+                        s.testResult.test_score = scoreData.test_score;
+                        s.testResult.rank = scoreData.rank;
+                        s.testResult.percentile = scoreData.percentile.toFixed(2);
+                        let sectionArr = s.testResult.section
+                        var secNum = 1;
+                        var secIndex = 0;
+                        for (var secData of sectionArr) {
+                            secNum = parseInt(secIndex) + 1
+                            var secScore = await getTestSectionPercentile(params, secNum);
+                            secData.rank = secScore.rank;
+                            secData.percentile = secScore.percentile.toFixed(2);
+                            secData.sectionNum = secScore.sectionNum;
+                            // var questiondata = await testSectionQuestions(secData);
+                            var chapterdata = await testChapterReport(secData,chapterDataAll);
+                            secData.chapterReport = chapterdata;
+                            s.testResult.section[secIndex] = secData;
+                            secIndex++
+                        }
+                        //console.log("sec Score == ", secScore);
+                        result = s.testResult
+                        testSummary.push(result)
+
+
+                    }
+                    res.send({status: 200, data: testSummary})
+
+                });
+
+            } else {
+                res.send({status: 502, message: "User Id Not Found"})
+            }
+        } else {
+
+            res.send({status: 502, message: "Request Body Null"})
+
+        }
+
+
+    });
+
+    app.post('/addbookmark', (req, res) => {
+        console.log("file: addbookmark", req.body, req.body.userEmailId)
+
+
+
+    });
+
+};

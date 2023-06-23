@@ -11,6 +11,7 @@ const topicRoutes = require("./routes/topicRoute");
 const blogsRoute = require("./routes/blogsRoute");
 const userQuestionsBookmark = require("./routes/userQuestionsBookmark");
 const paymentRoutes = require("./routes/payment");
+const analysisRoutes = require("./routes/analysis");
 
 // Add access to the app and db objects to each route
 
@@ -62,6 +63,12 @@ function paymentrouter(app, db) {
 	return paymentRoutes(app, db);
 }
 
+
+function analysisrouter(app, db) {
+	return analysisRoutes(app, db);
+}
+
+
 module.exports = {
 	chapterrouter,
 	topicrouter,
@@ -76,4 +83,5 @@ module.exports = {
 	blogsroute,
 	userquestionsbookmark,
 	paymentrouter,
+	analysisrouter
 };
