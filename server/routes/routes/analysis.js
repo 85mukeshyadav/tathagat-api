@@ -3,16 +3,28 @@ const express = require('express');
 const {protect, authorize} = require('../../middleware/auth');
 const {getQueInfo, getPackageInfo} = require("../../helper/helper");
 const cors = require("cors");
-const { Op } = require('sequelize');
-
+const {Op} = require('sequelize');
 
 
 module.exports = (app, db) => {
-    const { subject, course, topic, chapters, Test,questions, packages, testType, testAttempted,users, testSectionResult, testQuestionResult } = db;
+    const {
+        subject,
+        course,
+        topic,
+        chapters,
+        Test,
+        questions,
+        packages,
+        testType,
+        testAttempted,
+        users,
+        testSectionResult,
+        testQuestionResult
+    } = db;
 
-    async function getUserTestPercentile(params){
+    async function getUserTestPercentile(params) {
         const usercount = await users.count({
-            where: { user_type: "student" },
+            where: {user_type: "student"},
         });
         let userId = params.userId;
         let testId = params.testId;
@@ -21,61 +33,63 @@ module.exports = (app, db) => {
         let test_score = scoreData.test_score;
         let rank = parseInt(scoreData.rank);
         let totalEnrolledStudent = parseInt(usercount)
-        let percentile = (totalEnrolledStudent - rank + 1)/totalEnrolledStudent*100;
-        let result = {userId,testId,packageId, test_score, rank, percentile,totalEnrolledStudent }
+        let percentile = (totalEnrolledStudent - rank + 1) / totalEnrolledStudent * 100;
+        let result = {userId, testId, packageId, test_score, rank, percentile, totalEnrolledStudent}
         return result;
     };
-    async function getTestSectionPercentile(params, sec=1){
+
+    async function getTestSectionPercentile(params, sec = 1) {
 
         const usercount = await users.count({
-            where: { user_type: "student" },
+            where: {user_type: "student"},
         });
 
         let userId = params.userId;
         let testId = params.testId;
         let packageId = params.packageId;
-        let scoreData = await getTestSectionRank(params,sec);
+        let scoreData = await getTestSectionRank(params, sec);
         let score = scoreData.score;
         let rank = parseInt(scoreData.rank);
         let totalEnrolledStudent = parseInt(usercount)
-        let percentile = (totalEnrolledStudent - rank + 1)/totalEnrolledStudent*100;
+        let percentile = (totalEnrolledStudent - rank + 1) / totalEnrolledStudent * 100;
         let sectionNum = sec;
-        let result = {userId, testId, packageId, sectionNum, score, rank, percentile, totalEnrolledStudent }
+        let result = {userId, testId, packageId, sectionNum, score, rank, percentile, totalEnrolledStudent}
         return result;
     };
-    async function testSectionQuestions(params){
+
+    async function testSectionQuestions(params) {
         var result = [];
         var qusArr = params.question;
         var counter = 1;
         let allTopicsData = await getTopicDataAll();
         var questionDataAll = await getQuestionDataAAll();
-        for(var qusData of qusArr){
+        for (var qusData of qusArr) {
             qusData.questionNumber = counter;
             var ansStatus = 'Un-attempted';
-            if(qusData.answerStatus == 'C'){
+            if (qusData.answerStatus == 'C') {
                 ansStatus = 'Correct';
-            }else if(qusData.answerStatus == 'W'){
+            } else if (qusData.answerStatus == 'W') {
                 ansStatus = 'Incorrect';
             }
             qusData.answer_status = ansStatus;
             qusData.topicName = "";
 
 
-            if(qusData.topicId){
+            if (qusData.topicId) {
 
-                var topicData = allTopicsData.find(topic => topic.Id==qusData.topicId);
+                var topicData = allTopicsData.find(topic => topic.Id == qusData.topicId);
                 qusData.topicName = topicData.topicName;
             }
             qusData.user_answer = "NA";
-            var user_answer = parseInt(qusData.usersAnswer)+1;
-            if(parseInt(user_answer)>0){
+            var user_answer = parseInt(qusData.usersAnswer) + 1;
+            if (parseInt(user_answer) > 0) {
                 qusData.user_answer = user_answer;
             }
             qusData.correctoption = qusData.question = qusData.questionoption = "";
-            if(qusData.questionId){
+            if (qusData.questionId) {
                 var questionData = questionDataAll.find(qus => qus.questionId == qusData.questionId)
                 console.log(" -------------- questionData == ", questionData);
-                if(questionData){
+                if (questionData) {
                     //qusData.question = questionData.question;
                     //qusData.questionoption = questionData.questionoption;
                     qusData.correctoption = questionData.correctoption;
@@ -87,15 +101,16 @@ module.exports = (app, db) => {
         return result;
 
     }
-    async function testChapterReport(params,chapterData){
+
+    async function testChapterReport(params, chapterData) {
         var chapResult = {};
-        var chpresult =[];
+        var chpresult = [];
         var chpIdArr = [];
         var chpQusArr = params.question;
         var chpQuestions = [];
         var chapterDataAll = chapterData
-        for(var qusChp of chpQusArr){
-            if(qusChp.chapterChapterId){
+        for (var qusChp of chpQusArr) {
+            if (qusChp.chapterChapterId) {
                 var chapterData = chapterDataAll.find(chp => chp.chapterId == qusChp.chapterChapterId);
                 qusChp.chapterName = chapterData.chapterName;
             }
@@ -103,46 +118,53 @@ module.exports = (app, db) => {
             chpQuestions.push(qusChp)
         }
 
-        const chpIds = [ ...new Set(chpIdArr)];
-        var chapResult =[];
+        const chpIds = [...new Set(chpIdArr)];
+        var chapResult = [];
         var chpIndex = 0;
-        for(chapterId of chpIds){
-            var chpObj ={};
+        for (chapterId of chpIds) {
+            var chpObj = {};
             console.log("testChapterReport result in for == ", chapterId);
             var totalQus = 0;
             var rigthQues = 0;
-            var chapterName ="";
+            var chapterName = "";
             //chapResult[chapterId] = [];
 
-            for(var qusChpData of chpQuestions){
-                if(chapterId==qusChpData.chapterChapterId){
+            for (var qusChpData of chpQuestions) {
+                if (chapterId == qusChpData.chapterChapterId) {
                     totalQus++;
-                    if(qusChpData.answerStatus == 'C'){
+                    if (qusChpData.answerStatus == 'C') {
                         rigthQues++;
                     }
                     chapterName = qusChpData.chapterName;
                 }
             }
 
-            var scale = (rigthQues*100)/totalQus;
+            var scale = (rigthQues * 100) / totalQus;
             scale = scale.toFixed(2);
-            scale = scale/10;
+            scale = scale / 10;
             var remarks = await getRemarksForScale(scale);
-            chpObj = {chapterName: chapterName,totalQuestions: totalQus, rightQuestions: rigthQues, scale: scale, remarks:remarks};
+            chpObj = {
+                chapterName: chapterName,
+                totalQuestions: totalQus,
+                rightQuestions: rigthQues,
+                scale: scale,
+                remarks: remarks
+            };
             //chapResult[chapterId].push(chpObj);
             chapResult.push(chpObj);
         }
         return chapResult;
     }
-    async function getUserTestRank(params){
-        const {sequelize } = db;
+
+    async function getUserTestRank(params) {
+        const {sequelize} = db;
         let rankQuery = "SELECT GROUP_CONCAT(score ORDER BY score DESC) FROM student_result ";
-        rankQuery +=" WHERE testId = '" + params.testId + "'";
+        rankQuery += " WHERE testId = '" + params.testId + "'";
         //rankQuery +=" AND packageId = '"+ params.packageId +"'";
 
-        let aqlQuery = "SELECT userId, score as score, FIND_IN_SET( score, ("+rankQuery+")) AS rank FROM student_result ";
-        aqlQuery +=" WHERE testId = '" + params.testId + "' AND userId = '"+params.userId + "'";
-        aqlQuery +=" AND packageId = '" + params.packageId +"'";
+        let aqlQuery = "SELECT userId, score as score, FIND_IN_SET( score, (" + rankQuery + ")) AS rank FROM student_result ";
+        aqlQuery += " WHERE testId = '" + params.testId + "' AND userId = '" + params.userId + "'";
+        aqlQuery += " AND packageId = '" + params.packageId + "'";
         //aqlQuery +=' ORDER BY netScore ASC';
 
         console.log("aqlQuery  ------- ", aqlQuery);
@@ -150,23 +172,24 @@ module.exports = (app, db) => {
         let result = await sequelize.query(aqlQuery, {type: sequelize.QueryTypes.SELECT});
         console.log("getUserRank JSON_EXTRACT ------- ", result);
         console.log("JSON_EXTRACT END ------------------------------- ");
-        let resultSet  = [];
-        if(typeof result != "undefined"){
+        let resultSet = [];
+        if (typeof result != "undefined") {
             resultSet = result[0];
         }
         return resultSet;
     };
-    async function getTestSectionRank(params,sec=1){
-        const {sequelize } = db;
-        let section_name = 'section'+sec+'_score';
 
-        let rankQuery = "SELECT GROUP_CONCAT("+section_name+" ORDER BY "+section_name+" DESC) FROM student_result ";
-        rankQuery +=" WHERE testId = '" + params.testId + "'";
+    async function getTestSectionRank(params, sec = 1) {
+        const {sequelize} = db;
+        let section_name = 'section' + sec + '_score';
+
+        let rankQuery = "SELECT GROUP_CONCAT(" + section_name + " ORDER BY " + section_name + " DESC) FROM student_result ";
+        rankQuery += " WHERE testId = '" + params.testId + "'";
         //rankQuery +=" AND packageId = '"+ params.packageId +"'";
 
-        let aqlQuery = "SELECT userId, "+section_name+" as score, FIND_IN_SET( "+section_name+", ("+rankQuery+")) AS rank FROM student_result ";
-        aqlQuery +=" WHERE testId = '" + params.testId + "'";
-        aqlQuery +=" AND userId = '"+params.userId + "'";
+        let aqlQuery = "SELECT userId, " + section_name + " as score, FIND_IN_SET( " + section_name + ", (" + rankQuery + ")) AS rank FROM student_result ";
+        aqlQuery += " WHERE testId = '" + params.testId + "'";
+        aqlQuery += " AND userId = '" + params.userId + "'";
         //aqlQuery +=" AND packageId = '" + params.packageId +"'" ;
 
         //aqlQuery +=' ORDER BY netScore ASC';
@@ -176,88 +199,102 @@ module.exports = (app, db) => {
         let result = await sequelize.query(aqlQuery, {type: sequelize.QueryTypes.SELECT});
         console.log("getUserRank JSON_EXTRACT ------- ", result);
         console.log("JSON_EXTRACT END ------------------------------- ");
-        let resultSet  = [];
-        if(typeof result != "undefined"){
+        let resultSet = [];
+        if (typeof result != "undefined") {
             resultSet = result[0];
         }
         return resultSet;
     };
-    async function getTopicDataAll(){
-        return await topic.findAll({attributes:["Id", "topicName"]});
+
+    async function getTopicDataAll() {
+        return await topic.findAll({attributes: ["Id", "topicName"]});
     }
-    async function getQuestionDataAAll(){
-        return await questions.findAll({attributes:["questionId", "correctoption"]}); //, "question","questionoption"
+
+    async function getQuestionDataAAll() {
+        return await questions.findAll({attributes: ["questionId", "correctoption"]}); //, "question","questionoption"
     }
-    async function getChapterDataAll(){
-        return await chapters.findAll({attributes:["chapterName","chapterId"]});
+
+    async function getChapterDataAll() {
+        return await chapters.findAll({attributes: ["chapterName", "chapterId"]});
     }
-    async function getRemarksForScale(scale){
+
+    async function getRemarksForScale(scale) {
         let x = Math.round(scale);
-        var remarksMsg = ["Require Conceptual Clarity","Require more practice","Good to go"];
-        var index=0;
-        if(x<=4){
-            index = 0 ;
-        }else if(x>4 && x<=6){
-            index = 1 ;
-        }else if(x>6){
-            index = 2 ;
+        var remarksMsg = ["Require Conceptual Clarity", "Require more practice", "Good to go"];
+        var index = 0;
+        if (x <= 4) {
+            index = 0;
+        } else if (x > 4 && x <= 6) {
+            index = 1;
+        } else if (x > 6) {
+            index = 2;
         }
         return remarksMsg[index];
     }
 
 
-    app.post('/overallPerformanceSummary/', cors(),async function (req, res) {
+    app.post('/overallPerformanceSummary/', cors(), async function (req, res) {
         req.db = db
         if (typeof req.body != "undefined") {
             let params = req.body;
             var chapterDataAll = await getChapterDataAll();
 
-            console.log("chapterDataAll",chapterDataAll)
+            console.log("chapterDataAll", chapterDataAll)
             params.chapterData = chapterDataAll
 
             if (typeof params.userId != "undefined") {
                 const startedDate = new Date(req.body.startDate + " 00:00:00");
                 const endDate = new Date(req.body.endDate + " 00:00:00");
-                let wahereClouse = {
+
+                let wahereClouse = {};
+                //let selectColumns = ["userId", "testId", "packageId","JSON_EXTRACT(testResult, '$.netScore') as score"];
+                let selectColumns = ["userId", "testId", "packageId", "JSON_EXTRACT(testResult, '$.netScore') as score"];
+                console.log("my analysis", params)
+                wahereClouse = {
                     where: {
-                        "userId": params.userId,
-                        submitted_at: {[Op.between]: [startedDate, endDate]}
+                        "userId": params.userId, "testId": params.testId
                     }
                 }
-                console.log(wahereClouse)
-                var testSummary = []
-                testAttempted.findAll(wahereClouse).then(async (attemptResult) => {
-                    console.log(attemptResult.length)
-                    for (s of attemptResult) {
-                        s.testResult.attempt_id = s.attempt_id;
-                        var scoreData = await getUserTestPercentile(params);
-                        s.testResult.test_score = scoreData.test_score;
-                        s.testResult.rank = scoreData.rank;
-                        s.testResult.percentile = scoreData.percentile.toFixed(2);
-                        let sectionArr = s.testResult.section
-                        var secNum = 1;
-                        var secIndex = 0;
-                        for (var secData of sectionArr) {
-                            secNum = parseInt(secIndex) + 1
-                            var secScore = await getTestSectionPercentile(params, secNum);
-                            secData.rank = secScore.rank;
-                            secData.percentile = secScore.percentile.toFixed(2);
-                            secData.sectionNum = secScore.sectionNum;
-                            // var questiondata = await testSectionQuestions(secData);
-                            var chapterdata = await testChapterReport(secData,chapterDataAll);
-                            secData.chapterReport = chapterdata;
-                            s.testResult.section[secIndex] = secData;
-                            secIndex++
-                        }
-                        //console.log("sec Score == ", secScore);
-                        result = s.testResult
-                        testSummary.push(result)
+                testAttempted.findOne(wahereClouse).then(async (s) => {
+                    s.testResult.attempt_id = s.attempt_id;
+                    var scoreData = await getUserTestPercentile(params);
+                    s.testResult.test_score = scoreData.test_score;
+                    s.testResult.rank = scoreData.rank;
+                    s.testResult.percentile = scoreData.percentile.toFixed(2);
+                    let sectionArr = s.testResult.section
+                    var secNum = 1;
+                    var secIndex = 0;
+                    for (var secData of sectionArr) {
+                        secNum = parseInt(secIndex) + 1
+                        var secScore = await getTestSectionPercentile(params, secNum);
+                        secData.rank = secScore.rank;
+                        secData.percentile = secScore.percentile.toFixed(2);
+                        secData.sectionNum = secScore.sectionNum;
+                        // var questiondata = await testSectionQuestions(secData);
+                        var chapterdata = await testChapterReport(secData, chapterDataAll);
+                        secData.chapterReport = chapterdata;
+                        s.testResult.section[secIndex] = secData;
+                        var accuracy = secData.correctAnswers*100/secData.answered
+                        s.testResult.section[secIndex]["overallPerformanceSummary"] = {rank:secScore.rank,score:secData.score,attempted:secData.answered,accuracy:accuracy,percentile:secScore.percentile.toFixed(2)}
 
+                        var marks = {startnumber:secData.totalQuestions*secData.negativeMarks,endnumber: secData.positiveMarks*secData.totalQuestions}
+                        s.testResult.section[secIndex]["marksDistributtion"] = {numberofstudent:"",marks:marks,youarehere:secData.score,average:""}
 
+                        s.testResult.section[secIndex]["questionDistributtion"] = {}
+                        s.testResult.section[secIndex]["questionList"] = {}
+                        s.testResult.section[secIndex]["comparewithtopper"] = {}
+
+                        secIndex++
                     }
-                    res.send({status: 200, data: testSummary})
+                    //console.log("sec Score == ", secScore);
+                    result = s.testResult
+                    res.send({status: 200, data: result})
 
+                }).catch((err) => {
+                    console.log(" analysis erre : ", err)
+                    res.status(402).send(err);
                 });
+
 
             } else {
                 res.send({status: 502, message: "User Id Not Found"})
@@ -273,7 +310,6 @@ module.exports = (app, db) => {
 
     app.post('/addbookmark', (req, res) => {
         console.log("file: addbookmark", req.body, req.body.userEmailId)
-
 
 
     });
