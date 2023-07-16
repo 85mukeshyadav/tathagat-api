@@ -10,6 +10,7 @@ module.exports = (app, db) => {
     const {
         subject,
         course,
+        sequelize,
         topic,
         chapters,
         Test,
@@ -232,6 +233,69 @@ module.exports = (app, db) => {
         return remarksMsg[index];
     }
 
+    async function  topperInfo(req){
+
+        console.log(req.body)
+        let params = req.body;
+
+        var chapterDataAll = await getChapterDataAll();
+
+        console.log("chapterDataAll", chapterDataAll)
+        params.chapterData = chapterDataAll
+
+        let wahereClouse = {};
+        //let selectColumns = ["userId", "testId", "packageId","JSON_EXTRACT(testResult, '$.netScore') as score"];
+        let selectColumns = ["userId", "testId", "packageId", "JSON_EXTRACT(testResult, '$.netScore') as score"];
+        console.log("my analysis", params)
+        wahereClouse = {
+            where: {
+                "userId": params.userId, "testId": params.testId
+            }
+        }
+
+        testAttempted.findOne(wahereClouse).then(async (s) => {
+            s.testResult.attempt_id = s.attempt_id;
+            var scoreData = await getUserTestPercentile(params);
+            s.testResult.test_score = scoreData.test_score;
+            s.testResult.rank = scoreData.rank;
+            s.testResult.percentile = scoreData.percentile.toFixed(2);
+            let sectionArr = s.testResult.section
+            var secNum = 1;
+            var secIndex = 0;
+            for (var secData of sectionArr) {
+                secNum = parseInt(secIndex) + 1
+                var secScore = await getTestSectionPercentile(params, secNum);
+                secData.rank = secScore.rank;
+                secData.percentile = secScore.percentile.toFixed(2);
+                secData.sectionNum = secScore.sectionNum;
+                // var questiondata = await testSectionQuestions(secData);
+                var chapterdata = await testChapterReport(secData, chapterDataAll);
+                secData.chapterReport = chapterdata;
+                s.testResult.section[secIndex] = secData;
+                var accuracy = secData.correctAnswers*100/secData.answered
+                s.testResult.section[secIndex]["overallPerformanceSummary"] = {rank:secScore.rank,score:secData.score,attempted:secData.answered,accuracy:accuracy,percentile:secScore.percentile.toFixed(2)}
+
+                var marks = {startnumber:secData.totalQuestions*secData.negativeMarks,endnumber: secData.positiveMarks*secData.totalQuestions}
+                s.testResult.section[secIndex]["marksDistributtion"] = {numberofstudent:totalcount,marks:marks,youarehere:secData.score,average:""}
+
+                s.testResult.section[secIndex]["questionDistributtion"] = {}
+                s.testResult.section[secIndex]["questionList"] = {}
+                s.testResult.section[secIndex]["comparewithtopper"] = {}
+
+                secIndex++
+            }
+            //console.log("sec Score == ", secScore);
+            result = s.testResult
+
+
+            return result;({status: 200, data: result})
+
+        }).catch((err) => {
+            console.log(" analysis erre : ", err)
+            return (err);
+        });
+
+    }
 
     app.post('/overallPerformanceSummary/', cors(), async function (req, res) {
         req.db = db
@@ -255,6 +319,19 @@ module.exports = (app, db) => {
                         "userId": params.userId, "testId": params.testId
                     }
                 }
+
+                let aqlQuery = "SELECT * FROM student_result "
+                aqlQuery += " WHERE testId = '" + params.testId + "' order by score desc ;"
+
+                let resultTopper = await sequelize.query(aqlQuery, {type: sequelize.QueryTypes.SELECT});
+
+
+                 var toppeobject = resultTopper[0]
+                console.log(toppeobject)
+
+
+                var totalcount = await testAttempted.count({ where: { "testId": params.testId }});
+
                 testAttempted.findOne(wahereClouse).then(async (s) => {
                     s.testResult.attempt_id = s.attempt_id;
                     var scoreData = await getUserTestPercentile(params);
@@ -278,7 +355,7 @@ module.exports = (app, db) => {
                         s.testResult.section[secIndex]["overallPerformanceSummary"] = {rank:secScore.rank,score:secData.score,attempted:secData.answered,accuracy:accuracy,percentile:secScore.percentile.toFixed(2)}
 
                         var marks = {startnumber:secData.totalQuestions*secData.negativeMarks,endnumber: secData.positiveMarks*secData.totalQuestions}
-                        s.testResult.section[secIndex]["marksDistributtion"] = {numberofstudent:"",marks:marks,youarehere:secData.score,average:""}
+                        s.testResult.section[secIndex]["marksDistributtion"] = {numberofstudent:totalcount,marks:marks,youarehere:secData.score,average:""}
 
                         s.testResult.section[secIndex]["questionDistributtion"] = {}
                         s.testResult.section[secIndex]["questionList"] = {}
@@ -288,6 +365,11 @@ module.exports = (app, db) => {
                     }
                     //console.log("sec Score == ", secScore);
                     result = s.testResult
+
+
+                    result["topperObject"] = toppeobject
+                    result["AllStudent"] = resultTopper
+
                     res.send({status: 200, data: result})
 
                 }).catch((err) => {
