@@ -108,6 +108,24 @@ module.exports = {
             });
         });
 
+    },
+
+    profileUpdate: function (req) {
+        return new Promise(async (resolve) => {
+            const {users} = req.db;
+            console.log(req.body,req.params.userEmailId)
+            users.update(
+                req.body,
+                {where: {email_id: req.params.userEmailId}})
+                .then((s) => {
+                    console.log(s)
+                    if (s) {
+                        resolve(s);
+                    } else {
+                        resolve(null);
+                    }
+                })
+        });
     }
 
 }
