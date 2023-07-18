@@ -1,11 +1,16 @@
 const express = require('express');
 
 const {protect, authorize} = require('../../middleware/auth');
-const {getQueInfo, getPackageInfo} = require("../../helper/helper");
+const {getQueInfo, getPackageInfo, getBookmarkQue, profileUpdate} = require("../../helper/helper");
 const cors = require("cors");
 
+
+const multer  = require('multer')
+const upload = multer({dest: 'uploads/'});
+
+
 module.exports = (app, db) => {
-    const {userQuestionsBookmark, question, topic, chapter} = db;
+    const {userQuestionsBookmark, question, topic, chapter,users} = db;
     app.get('/userbookmarklist/:userEmailId', cors(),function (req, res) {
         req.db = db
         userQuestionsBookmark.findAll({
@@ -77,6 +82,23 @@ module.exports = (app, db) => {
                 }
             });
 
+
+    });
+
+    app.post('/profile_update/:userEmailId',  upload.single('img'),/* name attribute of <file> element in your form */ async (req, res) => {
+        req.db = db
+
+        if(req.file) {
+            const tempPath = req.file.path;
+            req.body.profile = tempPath
+            console.log(tempPath)
+        }
+        var userProfile = await profileUpdate(req);
+        if(userProfile) {
+            res.status(200).send({status: 200, data: userProfile})
+        }else {
+            res.status(200).send({status: 400, eroor: "something is wrong"})
+        }
 
     });
 

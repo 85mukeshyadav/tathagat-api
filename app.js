@@ -9,6 +9,9 @@ router = require("./server/routes/index");
 const cors = require("cors");
 require("dotenv").config();
 
+const multer = require('multer');
+const upload = multer({dest: 'uploads/'});
+
 //midlewares
 app.use(morgan("dev"));
 app.use(bodyparser.json({ limit: "50mb" }));
@@ -54,3 +57,6 @@ app.use((error, req, res, next) => {
 		},
 	});
 });
+
+
+app.use(express.static("uploads"));
