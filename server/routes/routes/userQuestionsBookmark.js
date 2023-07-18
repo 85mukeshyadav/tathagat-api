@@ -4,6 +4,11 @@ const {protect, authorize} = require('../../middleware/auth');
 const {getQueInfo, getPackageInfo, getBookmarkQue, profileUpdate} = require("../../helper/helper");
 const cors = require("cors");
 
+
+const multer  = require('multer')
+const upload = multer({dest: 'uploads/'});
+
+
 module.exports = (app, db) => {
     const {userQuestionsBookmark, question, topic, chapter,users} = db;
     app.get('/userbookmarklist/:userEmailId', cors(),function (req, res) {
@@ -80,8 +85,14 @@ module.exports = (app, db) => {
 
     });
 
-    app.post('/profile_update/:userEmailId', async (req, res) => {
+    app.post('/profile_update/:userEmailId',  upload.single('img'),/* name attribute of <file> element in your form */ async (req, res) => {
         req.db = db
+
+        if(req.file) {
+            const tempPath = req.file.path;
+            req.body.profile = tempPath
+            console.log(tempPath)
+        }
         var userProfile = await profileUpdate(req);
         if(userProfile) {
             res.status(200).send({status: 200, data: userProfile})
