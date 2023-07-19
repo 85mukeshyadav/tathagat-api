@@ -9,8 +9,8 @@ router = require("./server/routes/index");
 const cors = require("cors");
 require("dotenv").config();
 
-const multer = require('multer');
-const upload = multer({dest: 'uploads/'});
+const multer = require("multer");
+const upload = multer({ dest: "uploads/" });
 
 //midlewares
 app.use(morgan("dev"));
@@ -39,7 +39,9 @@ router.authrouter(app, db);
 router.blogsroute(app, db);
 router.userquestionsbookmark(app, db);
 router.paymentrouter(app, db);
-router.analysisrouter(app,db)
+router.analysisrouter(app, db);
+
+app.use("/uploads", express.static("uploads"));
 
 // server
 const port = process.env.PORT || 3000;
@@ -57,6 +59,3 @@ app.use((error, req, res, next) => {
 		},
 	});
 });
-
-
-app.use(express.static("uploads"));
