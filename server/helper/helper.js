@@ -126,7 +126,12 @@ module.exports = {
 				.then((s) => {
 					console.log(s);
 					if (s) {
-						resolve(s);
+						resolve({
+							user: {
+								email_Id: req.params.userEmailId,
+								...req.body,
+							},
+						});
 					} else {
 						resolve(null);
 					}
