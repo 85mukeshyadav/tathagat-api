@@ -97,12 +97,8 @@ module.exports = (app, db) => {
 			});
 	});
 
-	app.post(
-		"/profile_update/:userEmailId",
-		upload.single("img"),
-		/* name attribute of <file> element in your form */ async (req, res) => {
+	app.post("/profile_update/:userEmailId", upload.single("img"), /* name attribute of <file> element in your form */ async (req, res) => {
 			req.db = db;
-
 			if (req.file) {
 				const tempPath = req.file.path;
 				req.body.profile = tempPath;
@@ -112,9 +108,7 @@ module.exports = (app, db) => {
 			if (userProfile) {
 				res.status(200).send({ status: 200, data: userProfile });
 			} else {
-				res
-					.status(200)
-					.send({ status: 400, eroor: "Error while updating profile" });
+				res.status(200).send({ status: 400, eroor: "Error while updating profile" });
 			}
 		}
 	);

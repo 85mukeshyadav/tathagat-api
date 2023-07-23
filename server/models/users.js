@@ -139,6 +139,15 @@ module.exports = (sequelize) => {
       autoIncrement: false,
       comment: null,
       field: 'profile',
+    },
+    personal_email: {
+      type: DataTypes.STRING(550),
+      allowNull: true,
+      defaultValue: null,
+      primaryKey: false,
+      autoIncrement: false,
+      comment: null,
+      field: 'personal_email',
     }
   };
   const options = {
