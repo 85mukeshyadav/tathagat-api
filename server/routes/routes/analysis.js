@@ -370,6 +370,30 @@ module.exports = (app, db) => {
                     result["topperObject"] = toppeobject
                     result["AllStudent"] = resultTopper
 
+
+
+
+                    const {sequelize } = db;
+                    let aqlQuery = ' SELECT td.* , user.username FROM `test_attempted`AS td LEFT JOIN users as user on user.email_Id = userId WHERE td.testId ='
+                    //let aqlQuery = 'SELECT userId, JSON_EXTRACT(testResult, "$.netScore") as score, FIND_IN_SET( JSON_EXTRACT(testResult, "$.netScore"), ( SELECT GROUP_CONCAT( JSON_EXTRACT(testResult, "$.netScore") ORDER BY JSON_EXTRACT(testResult, "$.netScore") DESC ) FROM test_attempted WHERE testId = "' + params.testId + '" AND packageId = "' + params.packageId + '")) AS rank FROM `test_attempted` ';
+                    aqlQuery += "'"+params.testId+"'"
+                    console.log("aqlQuery  ------- ", aqlQuery);
+
+                    let leaderboardresult = await sequelize.query(aqlQuery, {type: sequelize.QueryTypes.SELECT});
+
+
+                    var leaderBoardList = []
+                    for (var lead of leaderboardresult){
+                        console.log("lead  ------- ", lead);
+                        leaderBoardList.push({netScore:JSON.parse(lead.testResult).netScore,name:lead.username,userId:lead.userId})
+                    }
+
+                    leaderBoardList.sort(function(a, b) {
+                        return parseFloat(a.netScore) - parseFloat(b.netScore);
+                    });
+
+                    result["leaderBoardList"] = leaderBoardList
+
                     res.send({status: 200, data: result})
 
                 }).catch((err) => {
