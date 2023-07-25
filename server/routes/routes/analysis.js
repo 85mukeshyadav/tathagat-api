@@ -316,7 +316,7 @@ module.exports = (app, db) => {
                 console.log("my analysis", params)
                 wahereClouse = {
                     where: {
-                        "userId": params.userId, "testId": params.testId
+                        "userId": params.userId, "testId": params.testId, "packageId":params.packageId
                     }
                 }
 
