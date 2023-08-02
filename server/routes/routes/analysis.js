@@ -124,7 +124,6 @@ module.exports = (app, db) => {
         var chpIndex = 0;
         for (chapterId of chpIds) {
             var chpObj = {};
-            console.log("testChapterReport result in for == ", chapterId);
             var totalQus = 0;
             var rigthQues = 0;
             var chapterName = "";
@@ -233,20 +232,28 @@ module.exports = (app, db) => {
         return remarksMsg[index];
     }
 
+    async function getQans(testId){
+
+        console.log(testId)
+        let aqlQuery = "SELECT * FROM Test "
+        aqlQuery += " WHERE Test_Id = '" + testId +"'"
+
+        let Qans = await sequelize.query(aqlQuery, {type: sequelize.QueryTypes.SELECT});
+
+        return Qans;
+    }
+
     async function  topperInfo(req){
 
-        console.log(req.body)
         let params = req.body;
 
         var chapterDataAll = await getChapterDataAll();
 
-        console.log("chapterDataAll", chapterDataAll)
         params.chapterData = chapterDataAll
 
         let wahereClouse = {};
         //let selectColumns = ["userId", "testId", "packageId","JSON_EXTRACT(testResult, '$.netScore') as score"];
         let selectColumns = ["userId", "testId", "packageId", "JSON_EXTRACT(testResult, '$.netScore') as score"];
-        console.log("my analysis", params)
         wahereClouse = {
             where: {
                 "userId": params.userId, "testId": params.testId
@@ -303,7 +310,6 @@ module.exports = (app, db) => {
             let params = req.body;
             var chapterDataAll = await getChapterDataAll();
 
-            console.log("chapterDataAll", chapterDataAll)
             params.chapterData = chapterDataAll
 
             if (typeof params.userId != "undefined") {
@@ -313,7 +319,6 @@ module.exports = (app, db) => {
                 let wahereClouse = {};
                 //let selectColumns = ["userId", "testId", "packageId","JSON_EXTRACT(testResult, '$.netScore') as score"];
                 let selectColumns = ["userId", "testId", "packageId", "JSON_EXTRACT(testResult, '$.netScore') as score"];
-                console.log("my analysis", params)
                 wahereClouse = {
                     where: {
                         "userId": params.userId, "testId": params.testId, "packageId":params.packageId
@@ -321,16 +326,17 @@ module.exports = (app, db) => {
                 }
 
                 let aqlQuery = "SELECT * FROM student_result "
-                aqlQuery += " WHERE testId = '" + params.testId + "' order by score desc ;"
+                aqlQuery += " WHERE testId = '" + params.testId +"' AND packageId = '" + params.packageId +"' order by score desc ;"
 
                 let resultTopper = await sequelize.query(aqlQuery, {type: sequelize.QueryTypes.SELECT});
 
 
                  var toppeobject = resultTopper[0]
-                console.log(toppeobject)
 
 
                 var totalcount = await testAttempted.count({ where: { "testId": params.testId }});
+
+                var Qans = await getQans(params.testId)
 
                 testAttempted.findOne(wahereClouse).then(async (s) => {
                     s.testResult.attempt_id = s.attempt_id;
@@ -370,13 +376,16 @@ module.exports = (app, db) => {
                     result["topperObject"] = toppeobject
                     result["AllStudent"] = resultTopper
 
+                    Qans[0].Section = JSON.parse(Qans[0].Section)
+                    result["Qans"] = Qans[0]
+
 
 
 
                     const {sequelize } = db;
                     let aqlQuery = ' SELECT td.* , user.username FROM `test_attempted`AS td LEFT JOIN users as user on user.email_Id = userId WHERE td.testId ='
                     //let aqlQuery = 'SELECT userId, JSON_EXTRACT(testResult, "$.netScore") as score, FIND_IN_SET( JSON_EXTRACT(testResult, "$.netScore"), ( SELECT GROUP_CONCAT( JSON_EXTRACT(testResult, "$.netScore") ORDER BY JSON_EXTRACT(testResult, "$.netScore") DESC ) FROM test_attempted WHERE testId = "' + params.testId + '" AND packageId = "' + params.packageId + '")) AS rank FROM `test_attempted` ';
-                    aqlQuery += "'"+params.testId+"'"
+                    aqlQuery += "'"+params.testId+"' AND packageId = '" + params.packageId +"'";
                     console.log("aqlQuery  ------- ", aqlQuery);
 
                     let leaderboardresult = await sequelize.query(aqlQuery, {type: sequelize.QueryTypes.SELECT});
@@ -384,7 +393,6 @@ module.exports = (app, db) => {
 
                     var leaderBoardList = []
                     for (var lead of leaderboardresult){
-                        console.log("lead  ------- ", lead);
                         leaderBoardList.push({netScore:JSON.parse(lead.testResult).netScore,name:lead.username,userId:lead.userId})
                     }
 
