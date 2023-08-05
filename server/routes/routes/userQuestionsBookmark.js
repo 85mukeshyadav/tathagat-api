@@ -67,6 +67,9 @@ module.exports = (app, db) => {
 							userEmailId: req.body.userEmailId,
 							questionsId: req.body.questionsId,
 							status: req.body.status,
+							courseName:req.body.courseName,
+							subjectName:req.body.subjectName,
+							topicName:req.body.topicName
 						})
 						.then((s) => {
 							if (s) {
@@ -81,6 +84,9 @@ module.exports = (app, db) => {
 								userEmailId: req.body.userEmailId,
 								questionsId: req.body.questionsId,
 								status: req.body.status,
+								courseName:req.body.courseName,
+								subjectName:req.body.subjectName,
+								topicName:req.body.topicName
 							},
 							{
 								where: {
