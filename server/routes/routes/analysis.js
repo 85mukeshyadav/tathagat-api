@@ -334,9 +334,18 @@ module.exports = (app, db) => {
                  var toppeobject = resultTopper[0]
 
 
-                var totalcount = await testAttempted.count({ where: { "testId": params.testId }});
+                var totalcount = await testAttempted.count({ where: { "testId": params.testId, "packageId":params.packageId }});
 
                 var Qans = await getQans(params.testId)
+
+
+                let aqlQueryLB = ' SELECT td.* , user.username FROM `test_attempted`AS td LEFT JOIN users as user on user.email_Id = userId WHERE td.testId ='
+                //let aqlQueryLB = 'SELECT userId, JSON_EXTRACT(testResult, "$.netScore") as score, FIND_IN_SET( JSON_EXTRACT(testResult, "$.netScore"), ( SELECT GROUP_CONCAT( JSON_EXTRACT(testResult, "$.netScore") ORDER BY JSON_EXTRACT(testResult, "$.netScore") DESC ) FROM test_attempted WHERE testId = "' + params.testId + '" AND packageId = "' + params.packageId + '")) AS rank FROM `test_attempted` ';
+                aqlQueryLB += "'"+params.testId+"' AND packageId = '" + params.packageId +"'";
+                console.log("aqlQueryLB  ------- ", aqlQueryLB);
+
+                let leaderboardresult = await sequelize.query(aqlQueryLB, {type: sequelize.QueryTypes.SELECT});
+
 
                 testAttempted.findOne(wahereClouse).then(async (s) => {
                     s.testResult.attempt_id = s.attempt_id;
@@ -382,13 +391,6 @@ module.exports = (app, db) => {
 
 
 
-                    const {sequelize } = db;
-                    let aqlQuery = ' SELECT td.* , user.username FROM `test_attempted`AS td LEFT JOIN users as user on user.email_Id = userId WHERE td.testId ='
-                    //let aqlQuery = 'SELECT userId, JSON_EXTRACT(testResult, "$.netScore") as score, FIND_IN_SET( JSON_EXTRACT(testResult, "$.netScore"), ( SELECT GROUP_CONCAT( JSON_EXTRACT(testResult, "$.netScore") ORDER BY JSON_EXTRACT(testResult, "$.netScore") DESC ) FROM test_attempted WHERE testId = "' + params.testId + '" AND packageId = "' + params.packageId + '")) AS rank FROM `test_attempted` ';
-                    aqlQuery += "'"+params.testId+"' AND packageId = '" + params.packageId +"'";
-                    console.log("aqlQuery  ------- ", aqlQuery);
-
-                    let leaderboardresult = await sequelize.query(aqlQuery, {type: sequelize.QueryTypes.SELECT});
 
 
                     var leaderBoardList = []
@@ -418,6 +420,56 @@ module.exports = (app, db) => {
             res.send({status: 502, message: "Request Body Null"})
 
         }
+
+
+    });
+
+
+    app.post('/getwritePercentage/', cors(), async (req, res) => {
+        console.log("file: getwritePercentage", req.body)
+        let params = req.body;
+        req.db = db
+
+        let aqlQueryLB = ' SELECT td.* , user.username FROM `test_attempted`AS td LEFT JOIN users as user on user.email_Id = userId WHERE td.testId ='
+        //let aqlQueryLB = 'SELECT userId, JSON_EXTRACT(testResult, "$.netScore") as score, FIND_IN_SET( JSON_EXTRACT(testResult, "$.netScore"), ( SELECT GROUP_CONCAT( JSON_EXTRACT(testResult, "$.netScore") ORDER BY JSON_EXTRACT(testResult, "$.netScore") DESC ) FROM test_attempted WHERE testId = "' + params.testId + '" AND packageId = "' + params.packageId + '")) AS rank FROM `test_attempted` ';
+        aqlQueryLB += "'" + params.testId + "' AND packageId = '" + params.packageId + "'";
+        console.log("aqlQueryLB  ------- ", aqlQueryLB);
+
+        let leaderboardresult = await sequelize.query(aqlQueryLB, {type: sequelize.QueryTypes.SELECT});
+
+        console.log("aqlQueryLB  ------- ", leaderboardresult);
+
+        let sectionArr = JSON.parse(leaderboardresult[0].testResult).section
+        var sectionIndex = 0
+
+        console.log("leaderboardresult",leaderboardresult.length)
+
+        for (var secData of sectionArr) {
+            var questionIndex =0
+            for (var question of secData.question) {
+                var writePercentage =0;
+                for (var leaderBoard of leaderboardresult) {
+                    for (var allquestion of JSON.parse(leaderBoard.testResult).section[sectionIndex].question) {
+                        if( allquestion.answerStatus == "C" && question.questionId == allquestion.questionId ){
+                            writePercentage++
+                        }
+                    }
+
+                }
+
+                console.log("writePercentage",writePercentage,leaderboardresult.length)
+                if(writePercentage == 0){
+                    sectionArr[sectionIndex]["question"][questionIndex]["writePercentage"] = "00"
+                }else {
+                    sectionArr[sectionIndex]["question"][questionIndex]["writePercentage"] = writePercentage / leaderboardresult.length
+                }
+                questionIndex++
+            }
+
+            sectionIndex++
+         }
+
+        res.send({status: 200, data: sectionArr})
 
 
     });
