@@ -14,38 +14,47 @@ const multer = require("multer");
 const upload = multer({ dest: "uploads/" });
 
 module.exports = (app, db) => {
-	const { userQuestionsBookmark, question, topic, chapter, users } = db;
-	app.get("/userbookmarklist/:userEmailId", cors(), function (req, res) {
+	const { userQuestionsBookmark,sequelize, question, topic, chapter, users } = db;
+	app.get("/userbookmarklist/:userEmailId", cors(), async function (req, res) {
 		req.db = db;
-		userQuestionsBookmark
-			.findAll({
-				where: {
-					userEmailId: req.params.userEmailId,
-					status: 1,
-				},
-			})
-			.then(async (s, err) => {
-				if (s) {
-					var index = 0;
-					var bookmarkList = [];
-					for (var que of s) {
-						req.params.questionId = que.questionsId;
-						req.params.testId = que.testId;
-						var info = await getQueInfo(req);
-						console.log("info", info);
-						if (info != null) {
-							bookmarkList.push({ questions_info: info, other_info: s[index] });
-						}
-						index++;
-					}
 
-					console.log("bookmarkList", bookmarkList);
-					res.status(200).send({ status: 200, data: bookmarkList });
-				} else {
-					console.log(err);
-					res.status(200).send({ status: 400, eroor: err });
+
+		let aqlQueryLB = "SELECT uqb.*,co.courseId,co.courseName as co_courseName,sub.subjectName as sub_subjectName,topi.topicName as top_topicName FROM `user_questions_bookmark` as uqb " ;
+			aqlQueryLB += "LEFT JOIN courses as co on co.courseId = uqb.courseName " ;
+			aqlQueryLB +="LEFT JOIN subjects as sub on sub.subjectId = uqb.subjectName " ;
+			aqlQueryLB += "LEFT JOIN topics as topi on topi.topicId = uqb.topicName "
+		aqlQueryLB +=
+			"WHERE uqb.status= 1 AND uqb.userEmailId = '" + req.params.userEmailId + "'";
+
+		console.log("aqlQueryLB  ------- ", aqlQueryLB);
+
+		let s = await sequelize.query(aqlQueryLB, {
+			type: sequelize.QueryTypes.SELECT,
+		});
+
+		console.log(s)
+
+		if (s) {
+			var index = 0;
+			var bookmarkList = [];
+			for (var que of s) {
+				req.params.questionId = que.questionsId;
+				req.params.testId = que.testId;
+				var info = await getQueInfo(req);
+				console.log("info", info);
+				if (info != null) {
+					bookmarkList.push({questions_info: info, other_info: s[index]});
 				}
-			});
+				index++;
+			}
+
+			console.log("bookmarkList", bookmarkList);
+			res.status(200).send({status: 200, data: bookmarkList});
+		} else {
+			console.log(err);
+			res.status(200).send({status: 400, eroor: err});
+		}
+
 	});
 
 	app.post("/addbookmark", (req, res) => {
