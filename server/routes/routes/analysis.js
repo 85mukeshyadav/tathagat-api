@@ -530,59 +530,67 @@ module.exports = (app, db) => {
 		let aqlQueryLB =
 			" SELECT td.* , user.username FROM `test_attempted`AS td LEFT JOIN users as user on user.email_Id = userId WHERE td.testId =";
 		//let aqlQueryLB = 'SELECT userId, JSON_EXTRACT(testResult, "$.netScore") as score, FIND_IN_SET( JSON_EXTRACT(testResult, "$.netScore"), ( SELECT GROUP_CONCAT( JSON_EXTRACT(testResult, "$.netScore") ORDER BY JSON_EXTRACT(testResult, "$.netScore") DESC ) FROM test_attempted WHERE testId = "' + params.testId + '" AND packageId = "' + params.packageId + '")) AS rank FROM `test_attempted` ';
-		aqlQueryLB +=
-			"'" + params.testId + "' AND packageId = '" + params.packageId + "'";
-		console.log("aqlQueryLB  ------- ", aqlQueryLB);
+		aqlQueryLB += "'" + params.testId + "' AND packageId = '" + params.packageId + "'";
 
 		let leaderboardresult = await sequelize.query(aqlQueryLB, {
 			type: sequelize.QueryTypes.SELECT,
 		});
 
-		console.log("aqlQueryLB  ------- ", leaderboardresult);
-
 		let sectionArr = JSON.parse(leaderboardresult[0].testResult).section;
 		var sectionIndex = 0;
 
-		console.log("leaderboardresult", leaderboardresult.length);
 
-		for (var secData of sectionArr) {
-			var questionIndex = 0;
-			for (var question of secData.question) {
-				var writePercentage = 0;
-				for (var leaderBoard of leaderboardresult) {
-					for (var allquestion of JSON.parse(leaderBoard.testResult).section[
-						sectionIndex
-					].question) {
-						if (
-							allquestion.answerStatus == "C" &&
-							question.questionId == allquestion.questionId
-						) {
-							writePercentage++;
-						}
-					}
-				}
+		var questionDifficulty = false
 
-				console.log(
-					"writePercentage",
-					writePercentage,
-					leaderboardresult.length
-				);
-				if (writePercentage == 0) {
-					sectionArr[sectionIndex]["question"][questionIndex][
-						"writePercentage"
-					] = 0;
-				} else {
-					sectionArr[sectionIndex]["question"][questionIndex][
-						"writePercentage"
-					] = writePercentage / leaderboardresult.length;
-				}
-				questionIndex++;
-			}
-
-			sectionIndex++;
+		if(leaderboardresult.length >100){
+			questionDifficulty = true;
 		}
 
-		res.send({ status: 200, data: sectionArr });
+		Test.findAll({
+			where: {
+				Test_Id: params.testId,
+				//PackagePrice:'0'
+			}
+		}).then((s, err) => {
+			let arr = []
+			if (s) {
+
+				for (var secData of sectionArr) {
+					var questionIndex = 0;
+					for (var question of secData.question) {
+						var writePercentage = 0;
+						for (var leaderBoard of leaderboardresult) {
+							for (var allquestion of JSON.parse(leaderBoard.testResult).section[sectionIndex].question) {
+								if (allquestion.answerStatus == "C" && question.questionId == allquestion.questionId) {
+									writePercentage++;
+								}
+							}
+						}
+
+						var picked = s[0].Section[sectionIndex].QuestionList.find(o => o.questionId === question.questionId);
+						sectionArr[sectionIndex]["question"][questionIndex]["questionLevel"] = picked.questionLevel
+
+						if (writePercentage == 0) {
+							sectionArr[sectionIndex]["question"][questionIndex]["writePercentage"] = 0;
+						} else {
+							sectionArr[sectionIndex]["question"][questionIndex]["writePercentage"] = writePercentage / leaderboardresult.length;
+							if(sectionArr[sectionIndex]["question"][questionIndex]["writePercentage"]*100 >70){
+								sectionArr[sectionIndex]["question"][questionIndex]["questionLevel"] ="Easy"
+							}else if(sectionArr[sectionIndex]["question"][questionIndex]["writePercentage"]*100>40 && sectionArr[sectionIndex]["question"][questionIndex]["writePercentage"]*100 <= 70){
+								sectionArr[sectionIndex]["question"][questionIndex]["questionLevel"] ="Medium"
+							}else{
+								sectionArr[sectionIndex]["question"][questionIndex]["questionLevel"] ="Hard"
+							}
+
+						}
+						questionIndex++;
+					}
+
+					sectionIndex++;
+				}
+				res.send({status: 200, data: sectionArr});
+			}
+		})
 	});
 
 	app.post("/addbookmark", (req, res) => {
