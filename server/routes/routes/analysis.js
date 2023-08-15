@@ -32,7 +32,7 @@ module.exports = (app, db) => {
 		let scoreData = await getUserTestRank(params);
 		let test_score = scoreData.test_score;
 		let rank = parseInt(scoreData.rank);
-		let totalEnrolledStudent = parseInt(usercount);
+		let totalEnrolledStudent = parseInt(params.totalcount);
 		let percentile =
 			((totalEnrolledStudent - rank + 1) / totalEnrolledStudent) * 100;
 		let result = {
@@ -438,6 +438,7 @@ module.exports = (app, db) => {
 					.findOne(wahereClouse)
 					.then(async (s) => {
 						s.testResult.attempt_id = s.attempt_id;
+						params.totalcount = totalcount
 						var scoreData = await getUserTestPercentile(params);
 						s.testResult.test_score = scoreData.test_score;
 						s.testResult.rank = scoreData.rank;
