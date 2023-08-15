@@ -181,7 +181,7 @@ module.exports = (app, db) => {
 		let rankQuery =
 			"SELECT GROUP_CONCAT(score ORDER BY score DESC) FROM student_result ";
 		rankQuery += " WHERE testId = '" + params.testId + "'";
-		//rankQuery +=" AND packageId = '"+ params.packageId +"'";
+		rankQuery +=" AND packageId = '"+ params.packageId +"'";
 
 		let aqlQuery =
 			"SELECT userId, score as score, FIND_IN_SET( score, (" +
@@ -221,7 +221,7 @@ module.exports = (app, db) => {
 			section_name +
 			" DESC) FROM student_result ";
 		rankQuery += " WHERE testId = '" + params.testId + "'";
-		//rankQuery +=" AND packageId = '"+ params.packageId +"'";
+		rankQuery +=" AND packageId = '"+ params.packageId +"'";
 
 		let aqlQuery =
 			"SELECT userId, " +
@@ -233,7 +233,7 @@ module.exports = (app, db) => {
 			")) AS rank FROM student_result ";
 		aqlQuery += " WHERE testId = '" + params.testId + "'";
 		aqlQuery += " AND userId = '" + params.userId + "'";
-		//aqlQuery +=" AND packageId = '" + params.packageId +"'" ;
+		aqlQuery +=" AND packageId = '" + params.packageId +"'" ;
 
 		//aqlQuery +=' ORDER BY netScore ASC';
 
