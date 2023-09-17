@@ -33,7 +33,7 @@
     "multer": "^2.0.0-beta.1 ",
     "multer-s3": "^2.9.0",
     "mysql": "^2.18.1",
-    "nodemon": "^2.0.2",
+    "nodemon": "^2.0.22",
     "pm2": "^5.2.0",
     "redux": "^4.0.5",
     "redux-logger": "^3.0.6",
