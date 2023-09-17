@@ -166,7 +166,6 @@ module.exports = (app, db) => {
     console.log("result",result)
     //for (data of result){
      // data.Section = JSON.parse(data.Section);
-
     //}
     //console.log("query result ===", result);
     res.status(200).send(result);
