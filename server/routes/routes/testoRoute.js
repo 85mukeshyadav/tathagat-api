@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 
 const { protect, authorize } = require('../../middleware/auth');
+const {getPackageUserID, getPackageInfo, getBookmarkQue} = require("../../helper/helper");
 
 module.exports = (app, db) => {
   const { subject, course, topic, chapters, Test,questions, packages, testType, testAttempted,users,
@@ -88,7 +89,8 @@ module.exports = (app, db) => {
       chapterChapterId: req.body.chapterId,
       courseCourseId: req.body.courseId,
       SectionRule: req.body.rule,
-      Section: req.body.Section
+      Section: req.body.Section,
+      instructions: req.body.instructions
     }).then((s) => {
       if (s) {
         res.status(200).send(s);
@@ -161,8 +163,10 @@ module.exports = (app, db) => {
     //   }
     // });
     let result = await sequelize.query(sqlQuery, {type: sequelize.QueryTypes.SELECT});
+    console.log("result",result)
     //for (data of result){
-      //data.Section = JSON.parse(data.Section);
+     // data.Section = JSON.parse(data.Section);
+
     //}
     //console.log("query result ===", result);
     res.status(200).send(result);
@@ -296,8 +300,8 @@ module.exports = (app, db) => {
         //let selectColumns = ["userId", "testId", "packageId","JSON_EXTRACT(testResult, '$.netScore') as score"];
         let selectColumns = ["userId", "testId", "packageId","JSON_EXTRACT(testResult, '$.netScore') as score"];
         //console.log("zzzzz",params)
-        //wahereClouse = {where: {"userId":params.userId, "testId":params.testId, "packageId":params.packageId}}
-        wahereClouse = {where: {"userId":params.userId, "testId":params.testId}}
+        wahereClouse = {where: {"userId":params.userId, "testId":params.testId, "packageId":params.packageId}}
+        //wahereClouse = {where: {"userId":params.userId, "testId":params.testId}}
         testAttempted.findOne(wahereClouse).then(async(s) => {
             let result = {};
             if(s && typeof s.testResult !="undefined"){
@@ -317,12 +321,48 @@ module.exports = (app, db) => {
                 secData.percentile = secScore.percentile;
                 secData.sectionNum = secScore.sectionNum;
                 s.testResult.section[secIndex] = secData;
+
+                var avgSpentTime = 0
+                var avgCorrentSpentTime = 0
+                for(var que of secData.question){
+                  avgSpentTime = avgSpentTime +parseInt(que.timeTaken)
+                  if(que.answerStatus == "C"){
+                    avgCorrentSpentTime = avgCorrentSpentTime + parseInt(que.timeTaken)
+                  }
+                }
+                console.log(avgSpentTime)
+                avgSpentTime = avgSpentTime/secData.question.length
+                avgCorrentSpentTime = avgCorrentSpentTime/secData.correctAnswers
+                s.testResult.section[secIndex]["avgSpentTime"] = avgSpentTime;
+                s.testResult.section[secIndex]["avgCorrentSpentTime"] = avgCorrentSpentTime;
                 secIndex++
               }
-              
               console.log("sec Score == ", secScore);
               result = s.testResult
+              req.db = db
+              req.body.userEmailId = req.body.userId
+              var QueBookmark = await getBookmarkQue(req);
+
+              console.log(QueBookmark)
+
+              var sectionIndex = 0;
+              for(var section of result.section) {
+                var index = 0;
+                for (var que of section.question) {
+                  result.section[sectionIndex].question[index]["bookmark"] = false;
+                  await QueBookmark.forEach(obj => {
+                    console.log(obj.questionsId.toString() , que.questionId.toString(), (obj.questionsId.toString() === que.questionId.toString()),index,sectionIndex)
+                    if (obj.questionsId.toString() === que.questionId.toString()) {
+                      result.section[sectionIndex].question[index]["bookmark"] = true;
+                    }
+                  });
+
+                  index++
+                }
+                sectionIndex ++
+              }
             }
+            console.log("sadcas")
             res.status(200).send(result);
         }).catch((err)=>{
           console.log("vvvvv",err)
@@ -441,7 +481,7 @@ module.exports = (app, db) => {
     const {sequelize } = db;
     if(req.body) {
       let body = req.body
-      let sqlQuery = "SELECT tst.subjectId, tst.topicId, tst.chapterChapterId, tst.packagePackageId, tst.sorting_order, tst.Test_Id, tst.created_at, tst.SectionRule, tst.totaltime, tst.courseCourseId, tst.TestTitle, tst.exam_type, tst.examLevel, cou.courseName,sub.subjectName, chp.chapterName, tpc.topicName, testAtm.attempt_id FROM Test as tst ";
+      let sqlQuery = "SELECT tst.subjectId, tst.topicId, tst.chapterChapterId, tst.packagePackageId, tst.sorting_order, tst.Test_Id, tst.created_at, tst.SectionRule, tst.totaltime, tst.courseCourseId, tst.TestTitle, tst.exam_type, tst.examLevel, tst.instructions, cou.courseName,sub.subjectName, chp.chapterName, tpc.topicName, testAtm.attempt_id FROM Test as tst ";
       sqlQuery +=" INNER JOIN  courses as cou ON cou.courseId = tst.courseCourseId ";
       sqlQuery +=" LEFT JOIN  subjects as sub ON sub.subjectId = tst.subjectId ";
       sqlQuery +=" LEFT JOIN  chapters as chp ON chp.chapterId = tst.chapterChapterId ";
@@ -701,6 +741,44 @@ module.exports = (app, db) => {
   });
 
 
+  app.get('/gettest/:testId/:userId/:PackageId', (req, res) => {
+    Test.findAll({
+      where: {
+        Test_Id: req.params.testId,
+        //PackagePrice:'0'
+      }
+    }).then(async (s, err) => {
+      let arr = []
+      if (s) {
+        var userTast = false
+        req.db = db
+        var packageList = await getPackageUserID(req);
+        if(packageList.length > 0){
+          for(var package of packageList){
+            req.params.packageId  = package.packagePackageId
+            var packageInfo = await getPackageInfo(req);
+            if(packageInfo != null){
+              console.log(package.packagePackageId)
+              let filter = packageInfo.TestList.filter(d => d.TestId == req.params.testId)
+              console.log(filter)
+              if(filter.length >0){
+                console.log(userTast)
+                userTast = true
+              }
+            }
+
+          }
+        }
+        console.log(userTast)
+        if(userTast){
+          res.status(200).send(s)
+        }else {
+
+          res.status(404).send("no access test ")
+        }
+      }
+    })
+  });
 
 
 };

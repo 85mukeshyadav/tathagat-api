@@ -37,6 +37,8 @@ const blog = require('../models/blog.js')(sequelize, Sequelize);
 const chapters = require('../models/chapters.js')(sequelize, Sequelize);
 // const questions = require('../models/questions.js')(sequelize, Sequelize);
 const course = require('../models/course.js')(sequelize, Sequelize);
+const courses = require('../models/courses.js')(sequelize, Sequelize);
+
 const users = require('../models/users.js')(sequelize, Sequelize);
 const admin = require('../models/admin.js')(sequelize, Sequelize);
 const Test = require('../models/Test.js')(sequelize, Sequelize);
@@ -50,6 +52,8 @@ const student = require('../models/student.js')(sequelize, Sequelize);
 const testType = require('../models/test_type.js')(sequelize, Sequelize);
 const userPackages = require('../models/user_packages.js')(sequelize, Sequelize);
 const testAttempted = require('../models/test_attempted.js')(sequelize, Sequelize);
+const userQuestionsBookmark = require('../models/user_questions_bookmark.js')(sequelize, Sequelize);
+
 
 subject.belongsTo(course);
 subject.hasMany(orderlist, { as: 'list' });
@@ -99,6 +103,8 @@ users.hasMany(user_course);
 //users.hasMany(userPackages);
 //packages.hasMany(userPackages);
 
+
+
 sequelize
   .authenticate()
   .then(() => {
@@ -147,6 +153,7 @@ module.exports = {
   testType,
   sequelize,
   userPackages,
-  testAttempted
-
+  testAttempted,
+  courses,
+  userQuestionsBookmark
 };
