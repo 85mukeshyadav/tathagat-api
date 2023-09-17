@@ -748,7 +748,7 @@ module.exports = (app, db) => {
     const { packages } = db;
 
     let pkSqlQuery = "SELECT";
-    pkSqlQuery += " pkg.packageId, pkg.PackageName, pkg.packagePrice, cou.courseName,sub.subjectName, chp.chapterName, tpc.topicName, pkg.thumbnail "; 
+    pkSqlQuery += " pkg.packageId, pkg.PackageName, pkg.packagePrice, cou.courseId,cou.courseName,sub.subjectId,sub.subjectName, chp.chapterName,tpc.topicId, tpc.topicName, pkg.thumbnail ";
     pkSqlQuery += " FROM packages as pkg ";
     pkSqlQuery +=" LEFT JOIN  courses as cou ON cou.courseId = pkg.courseCourseId ";
     pkSqlQuery +=" LEFT JOIN  subjects as sub ON sub.subjectId = pkg.subjectId ";
@@ -761,7 +761,7 @@ module.exports = (app, db) => {
     });
 
     let sqlQuery = "SELECT";
-    sqlQuery += " pkg.packageId, pkg.PackageName, pkg.packagePrice, cou.courseName,sub.subjectName, chp.chapterName, tpc.topicName, pkg.thumbnail "; 
+    sqlQuery += " pkg.packageId, pkg.PackageName, pkg.packagePrice, cou.courseId,cou.courseName,sub.subjectId,sub.subjectName, chp.chapterName,tpc.topicId, tpc.topicName, pkg.thumbnail ";
     sqlQuery += " FROM user_packages as up ";
     sqlQuery += " INNER JOIN packages as pkg ON pkg.packageId = up.packagePackageId AND pkg.packagePrice>0";
     sqlQuery +=" LEFT JOIN  courses as cou ON cou.courseId = pkg.courseCourseId ";
@@ -884,7 +884,7 @@ module.exports = (app, db) => {
         testId.push(s);
       })
 
-      let sqlQuery = "SELECT tst.	Test_Id, tst.subjectId, cou.courseName,sub.subjectName, chp.chapterName, tpc.topicName, testAtm.attempt_id FROM Test as tst ";
+      let sqlQuery = "SELECT tst.TestTitle, tst.Test_Id, tst.subjectId, cou.courseName,sub.subjectName, chp.chapterName, tpc.topicName, testAtm.attempt_id FROM Test as tst ";
       sqlQuery +=" INNER JOIN  courses as cou ON cou.courseId = tst.courseCourseId ";
       sqlQuery +=" LEFT JOIN  subjects as sub ON sub.subjectId = tst.subjectId ";
       sqlQuery +=" LEFT JOIN  chapters as chp ON chp.chapterId = tst.chapterChapterId ";

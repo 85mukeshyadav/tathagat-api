@@ -26,7 +26,7 @@ module.exports = (sequelize) => {
       },
       autoIncrement: false,
       comment: null,
-      field: 'email_Id',
+
     },
     username: {
       type: DataTypes.STRING(255),
@@ -113,6 +113,42 @@ module.exports = (sequelize) => {
       comment: null,
       field: 'signup_type',
     },
+    address: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      defaultValue: null,
+      primaryKey: false,
+      autoIncrement: false,
+      comment: null,
+      field: 'address',
+    },
+    full_name: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      defaultValue: null,
+      primaryKey: false,
+      autoIncrement: false,
+      comment: null,
+      field: 'full_name',
+    },
+    profile: {
+      type: DataTypes.STRING(550),
+      allowNull: true,
+      defaultValue: null,
+      primaryKey: false,
+      autoIncrement: false,
+      comment: null,
+      field: 'profile',
+    },
+    personal_email: {
+      type: DataTypes.STRING(550),
+      allowNull: true,
+      defaultValue: null,
+      primaryKey: false,
+      autoIncrement: false,
+      comment: null,
+      field: 'personal_email',
+    }
   };
   const options = {
     tableName: 'users',

@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 
 const { protect, authorize } = require('../../middleware/auth');
-const {getPackageUserID, getPackageInfo} = require("../../helper/helper");
+const {getPackageUserID, getPackageInfo, getBookmarkQue} = require("../../helper/helper");
 
 module.exports = (app, db) => {
   const { subject, course, topic, chapters, Test,questions, packages, testType, testAttempted,users,
@@ -163,14 +163,9 @@ module.exports = (app, db) => {
     //   }
     // });
     let result = await sequelize.query(sqlQuery, {type: sequelize.QueryTypes.SELECT});
-<<<<<<< HEAD
     console.log("result",result)
     //for (data of result){
      // data.Section = JSON.parse(data.Section);
-=======
-    //for (data of result){
-      //data.Section = JSON.parse(data.Section);
->>>>>>> 42de8ea090576bcc863e445596c3510e4e308699
     //}
     //console.log("query result ===", result);
     res.status(200).send(result);
@@ -304,8 +299,8 @@ module.exports = (app, db) => {
         //let selectColumns = ["userId", "testId", "packageId","JSON_EXTRACT(testResult, '$.netScore') as score"];
         let selectColumns = ["userId", "testId", "packageId","JSON_EXTRACT(testResult, '$.netScore') as score"];
         //console.log("zzzzz",params)
-        //wahereClouse = {where: {"userId":params.userId, "testId":params.testId, "packageId":params.packageId}}
-        wahereClouse = {where: {"userId":params.userId, "testId":params.testId}}
+        wahereClouse = {where: {"userId":params.userId, "testId":params.testId, "packageId":params.packageId}}
+        //wahereClouse = {where: {"userId":params.userId, "testId":params.testId}}
         testAttempted.findOne(wahereClouse).then(async(s) => {
             let result = {};
             if(s && typeof s.testResult !="undefined"){
@@ -325,12 +320,48 @@ module.exports = (app, db) => {
                 secData.percentile = secScore.percentile;
                 secData.sectionNum = secScore.sectionNum;
                 s.testResult.section[secIndex] = secData;
+
+                var avgSpentTime = 0
+                var avgCorrentSpentTime = 0
+                for(var que of secData.question){
+                  avgSpentTime = avgSpentTime +parseInt(que.timeTaken)
+                  if(que.answerStatus == "C"){
+                    avgCorrentSpentTime = avgCorrentSpentTime + parseInt(que.timeTaken)
+                  }
+                }
+                console.log(avgSpentTime)
+                avgSpentTime = avgSpentTime/secData.question.length
+                avgCorrentSpentTime = avgCorrentSpentTime/secData.correctAnswers
+                s.testResult.section[secIndex]["avgSpentTime"] = avgSpentTime;
+                s.testResult.section[secIndex]["avgCorrentSpentTime"] = avgCorrentSpentTime;
                 secIndex++
               }
-              
               console.log("sec Score == ", secScore);
               result = s.testResult
+              req.db = db
+              req.body.userEmailId = req.body.userId
+              var QueBookmark = await getBookmarkQue(req);
+
+              console.log(QueBookmark)
+
+              var sectionIndex = 0;
+              for(var section of result.section) {
+                var index = 0;
+                for (var que of section.question) {
+                  result.section[sectionIndex].question[index]["bookmark"] = false;
+                  await QueBookmark.forEach(obj => {
+                    console.log(obj.questionsId.toString() , que.questionId.toString(), (obj.questionsId.toString() === que.questionId.toString()),index,sectionIndex)
+                    if (obj.questionsId.toString() === que.questionId.toString()) {
+                      result.section[sectionIndex].question[index]["bookmark"] = true;
+                    }
+                  });
+
+                  index++
+                }
+                sectionIndex ++
+              }
             }
+            console.log("sadcas")
             res.status(200).send(result);
         }).catch((err)=>{
           console.log("vvvvv",err)

@@ -136,6 +136,21 @@ module.exports = (app, db) => {
       });
   });
 
+  // get a single user
+  app.get('/user_info/:email_Id', function (req, res) {
+    users.findOne({ where: { email_Id: req.params.email_Id } })
+        .then(async (user) => {
+          console.log("User", user)
+          if (!user) {
+            return res.status(401).json({ 'msg': "wrong crentials" });
+          }else {
+            return res.status(200).json(user);
+
+          }
+          //create token
+        });
+  });
+
   app.get('/alluser', function (req, res) {
     var whereClouse = {}
     if(typeof req.query !="undefined"){
