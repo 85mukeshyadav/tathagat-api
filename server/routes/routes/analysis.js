@@ -503,9 +503,9 @@ module.exports = (app, db) => {
 							});
 						}
 
-						leaderBoardList.sort(function (a, b) {
-							return parseFloat(a.netScore) - parseFloat(b.netScore);
-						});
+						//leaderBoardList.sort(function (a, b) {
+						//	return parseFloat(a.netScore) - parseFloat(b.netScore);
+						//});
 
 						result["leaderBoardList"] = leaderBoardList;
 
