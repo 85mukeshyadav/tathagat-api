@@ -181,7 +181,7 @@ module.exports = (app, db) => {
 		let rankQuery =
 			"SELECT GROUP_CONCAT(score ORDER BY score DESC) FROM student_result ";
 		rankQuery += " WHERE testId = '" + params.testId + "'";
-		rankQuery +=" AND packageId = '"+ params.packageId +"'";
+		rankQuery += " AND packageId = '" + params.packageId + "'";
 
 		let aqlQuery =
 			"SELECT userId, score as score, FIND_IN_SET( score, (" +
@@ -221,7 +221,7 @@ module.exports = (app, db) => {
 			section_name +
 			" DESC) FROM student_result ";
 		rankQuery += " WHERE testId = '" + params.testId + "'";
-		rankQuery +=" AND packageId = '"+ params.packageId +"'";
+		rankQuery += " AND packageId = '" + params.packageId + "'";
 
 		let aqlQuery =
 			"SELECT userId, " +
@@ -233,7 +233,7 @@ module.exports = (app, db) => {
 			")) AS rank FROM student_result ";
 		aqlQuery += " WHERE testId = '" + params.testId + "'";
 		aqlQuery += " AND userId = '" + params.userId + "'";
-		aqlQuery +=" AND packageId = '" + params.packageId +"'" ;
+		aqlQuery += " AND packageId = '" + params.packageId + "'";
 
 		//aqlQuery +=' ORDER BY netScore ASC';
 
@@ -438,7 +438,7 @@ module.exports = (app, db) => {
 					.findOne(wahereClouse)
 					.then(async (s) => {
 						s.testResult.attempt_id = s.attempt_id;
-						params.totalcount = totalcount
+						params.totalcount = totalcount;
 						var scoreData = await getUserTestPercentile(params);
 						s.testResult.test_score = scoreData.test_score;
 						s.testResult.rank = scoreData.rank;
@@ -446,6 +446,8 @@ module.exports = (app, db) => {
 						let sectionArr = s.testResult.section;
 						var secNum = 1;
 						var secIndex = 0;
+						var overallPercentile = 0;
+						var overallAccuracy = 0;
 						for (var secData of sectionArr) {
 							secNum = parseInt(secIndex) + 1;
 							var secScore = await getTestSectionPercentile(params, secNum);
@@ -460,6 +462,8 @@ module.exports = (app, db) => {
 							secData.chapterReport = chapterdata;
 							s.testResult.section[secIndex] = secData;
 							var accuracy = (secData.correctAnswers * 100) / secData.answered;
+							overallPercentile += parseFloat(secScore.percentile.toFixed(2));
+							overallAccuracy += parseFloat(accuracy.toFixed(2));
 							s.testResult.section[secIndex]["overallPerformanceSummary"] = {
 								rank: secScore.rank,
 								score: secData.score,
@@ -509,6 +513,14 @@ module.exports = (app, db) => {
 
 						result["leaderBoardList"] = leaderBoardList;
 
+						result["overallPerformanceSummary"] = {
+							rank: scoreData.rank,
+							score: s.testResult.netScore,
+							attempted: sectionArr.reduce((a, b) => a + b.answered, 0),
+							accuracy: overallAccuracy / sectionArr.length,
+							percentile: (overallPercentile / sectionArr.length).toFixed(2),
+						};
+
 						res.send({ status: 200, data: result });
 					})
 					.catch((err) => {
@@ -531,7 +543,8 @@ module.exports = (app, db) => {
 		let aqlQueryLB =
 			" SELECT td.* , user.username FROM `test_attempted`AS td LEFT JOIN users as user on user.email_Id = userId WHERE td.testId =";
 		//let aqlQueryLB = 'SELECT userId, JSON_EXTRACT(testResult, "$.netScore") as score, FIND_IN_SET( JSON_EXTRACT(testResult, "$.netScore"), ( SELECT GROUP_CONCAT( JSON_EXTRACT(testResult, "$.netScore") ORDER BY JSON_EXTRACT(testResult, "$.netScore") DESC ) FROM test_attempted WHERE testId = "' + params.testId + '" AND packageId = "' + params.packageId + '")) AS rank FROM `test_attempted` ';
-		aqlQueryLB += "'" + params.testId + "' AND packageId = '" + params.packageId + "'";
+		aqlQueryLB +=
+			"'" + params.testId + "' AND packageId = '" + params.packageId + "'";
 
 		let leaderboardresult = await sequelize.query(aqlQueryLB, {
 			type: sequelize.QueryTypes.SELECT,
@@ -540,10 +553,9 @@ module.exports = (app, db) => {
 		let sectionArr = JSON.parse(leaderboardresult[0].testResult).section;
 		var sectionIndex = 0;
 
+		var questionDifficulty = false;
 
-		var questionDifficulty = false
-
-		if(leaderboardresult.length >100){
+		if (leaderboardresult.length > 100) {
 			questionDifficulty = true;
 		}
 
@@ -551,47 +563,80 @@ module.exports = (app, db) => {
 			where: {
 				Test_Id: params.testId,
 				//PackagePrice:'0'
-			}
+			},
 		}).then((s, err) => {
-			let arr = []
+			let arr = [];
 			if (s) {
-
 				for (var secData of sectionArr) {
 					var questionIndex = 0;
 					for (var question of secData.question) {
 						var writePercentage = 0;
 						for (var leaderBoard of leaderboardresult) {
-							for (var allquestion of JSON.parse(leaderBoard.testResult).section[sectionIndex].question) {
-								if (allquestion.answerStatus == "C" && question.questionId == allquestion.questionId) {
+							for (var allquestion of JSON.parse(leaderBoard.testResult)
+								.section[sectionIndex].question) {
+								if (
+									allquestion.answerStatus == "C" &&
+									question.questionId == allquestion.questionId
+								) {
 									writePercentage++;
 								}
 							}
 						}
 
-						var picked = s[0].Section[sectionIndex].QuestionList.find(o => o.questionId === question.questionId);
-						sectionArr[sectionIndex]["question"][questionIndex]["questionLevel"] = picked.questionLevel
+						var picked = s[0].Section[sectionIndex].QuestionList.find(
+							(o) => o.questionId === question.questionId
+						);
+						sectionArr[sectionIndex]["question"][questionIndex][
+							"questionLevel"
+						] = picked.questionLevel;
 
 						if (writePercentage == 0) {
-							sectionArr[sectionIndex]["question"][questionIndex]["writePercentage"] = 0;
+							sectionArr[sectionIndex]["question"][questionIndex][
+								"writePercentage"
+							] = 0;
 						} else {
-							sectionArr[sectionIndex]["question"][questionIndex]["writePercentage"] = writePercentage / leaderboardresult.length;
-							if(sectionArr[sectionIndex]["question"][questionIndex]["writePercentage"]*100 >70){
-								sectionArr[sectionIndex]["question"][questionIndex]["questionLevel"] ="Easy"
-							}else if(sectionArr[sectionIndex]["question"][questionIndex]["writePercentage"]*100>40 && sectionArr[sectionIndex]["question"][questionIndex]["writePercentage"]*100 <= 70){
-								sectionArr[sectionIndex]["question"][questionIndex]["questionLevel"] ="Medium"
-							}else{
-								sectionArr[sectionIndex]["question"][questionIndex]["questionLevel"] ="Hard"
+							sectionArr[sectionIndex]["question"][questionIndex][
+								"writePercentage"
+							] = writePercentage / leaderboardresult.length;
+							if (
+								sectionArr[sectionIndex]["question"][questionIndex][
+									"writePercentage"
+								] *
+									100 >
+								70
+							) {
+								sectionArr[sectionIndex]["question"][questionIndex][
+									"questionLevel"
+								] = "Easy";
+							} else if (
+								sectionArr[sectionIndex]["question"][questionIndex][
+									"writePercentage"
+								] *
+									100 >
+									40 &&
+								sectionArr[sectionIndex]["question"][questionIndex][
+									"writePercentage"
+								] *
+									100 <=
+									70
+							) {
+								sectionArr[sectionIndex]["question"][questionIndex][
+									"questionLevel"
+								] = "Medium";
+							} else {
+								sectionArr[sectionIndex]["question"][questionIndex][
+									"questionLevel"
+								] = "Hard";
 							}
-
 						}
 						questionIndex++;
 					}
 
 					sectionIndex++;
 				}
-				res.send({status: 200, data: sectionArr});
+				res.send({ status: 200, data: sectionArr });
 			}
-		})
+		});
 	});
 
 	app.post("/addbookmark", (req, res) => {
