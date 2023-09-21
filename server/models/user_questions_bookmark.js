@@ -66,7 +66,30 @@ module.exports = sequelize => {
       comment: null,
       field: "updated_at"
     },
-   
+    courseName: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      primaryKey: false,
+      autoIncrement: false,
+      comment: null,
+      field: "courseName"
+    },
+    subjectName: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      primaryKey: false,
+      autoIncrement: false,
+      comment: null,
+      field: "subjectName"
+    },
+    topicName: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      primaryKey: false,
+      autoIncrement: false,
+      comment: null,
+      field: "topicName"
+    },
    
   };
 
