@@ -511,6 +511,8 @@ module.exports = (app, db) => {
 							return parseFloat(a.netScore) - parseFloat(b.netScore);
 						});
 
+                        leaderBoardList= leaderBoardList.reverse();
+
 						result["leaderBoardList"] = leaderBoardList;
 
 						result["overallPerformanceSummary"] = {
