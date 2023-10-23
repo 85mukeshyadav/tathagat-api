@@ -511,7 +511,7 @@ module.exports = (app, db) => {
 							return parseFloat(a.netScore) - parseFloat(b.netScore);
 						});
 
-                        leaderBoardList= leaderBoardList.reverse();
+						leaderBoardList = leaderBoardList.reverse();
 
 						result["leaderBoardList"] = leaderBoardList;
 
@@ -553,7 +553,7 @@ module.exports = (app, db) => {
 		});
 
 		let sectionArr = JSON.parse(leaderboardresult[0].testResult).section;
-		var sectionIndex = 0;
+		// var sectionIndex = 0;
 
 		var questionDifficulty = false;
 
@@ -571,6 +571,7 @@ module.exports = (app, db) => {
 			if (s) {
 				for (var secData of sectionArr) {
 					var questionIndex = 0;
+					var sectionIndex = 0;
 					for (var question of secData.question) {
 						var writePercentage = 0;
 						for (var leaderBoard of leaderboardresult) {
