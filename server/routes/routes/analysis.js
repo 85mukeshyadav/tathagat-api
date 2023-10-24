@@ -553,7 +553,7 @@ module.exports = (app, db) => {
 		});
 
 		let sectionArr = JSON.parse(leaderboardresult[0].testResult).section;
-		// var sectionIndex = 0;
+		var sectionIndex = 0;
 
 		var questionDifficulty = false;
 
@@ -571,27 +571,29 @@ module.exports = (app, db) => {
 			if (s) {
 				for (var secData of sectionArr) {
 					var questionIndex = 0;
-					var sectionIndex = 0;
 					for (var question of secData.question) {
 						var writePercentage = 0;
 						for (var leaderBoard of leaderboardresult) {
-							for (var allquestion of JSON.parse(leaderBoard.testResult)
-								.section[sectionIndex].question) {
-								if (
-									allquestion.answerStatus == "C" &&
-									question.questionId == allquestion.questionId
-								) {
-									writePercentage++;
+							if (JSON.parse(leaderBoard.testResult)?.section[sectionIndex]) {
+								for (var allquestion of JSON.parse(leaderBoard.testResult)
+									.section[sectionIndex].question) {
+									if (
+										allquestion.answerStatus == "C" &&
+										question.questionId == allquestion.questionId
+									) {
+										writePercentage++;
+									}
 								}
 							}
 						}
 
-						var picked = s[0].Section[sectionIndex].QuestionList.find(
+						var picked = s[0].Section[sectionIndex]?.QuestionList.find(
 							(o) => o.questionId === question.questionId
 						);
+
 						sectionArr[sectionIndex]["question"][questionIndex][
 							"questionLevel"
-						] = picked.questionLevel;
+						] = picked?.questionLevel;
 
 						if (writePercentage == 0) {
 							sectionArr[sectionIndex]["question"][questionIndex][
