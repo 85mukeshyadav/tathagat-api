@@ -574,11 +574,10 @@ module.exports = (app, db) => {
 					for (var question of secData.question) {
 						var writePercentage = 0;
 						for (var leaderBoard of leaderboardresult) {
-							const section = JSON.parse(leaderBoard.testResult)?.section[
-								sectionIndex
-							];
-							if (section) {
-								for (var allquestion of section?.question) {
+							const testResult = JSON.parse(leaderBoard.testResult);
+							if (typeof testResult.section[sectionIndex] != "undefined") {
+								for (var allquestion of testResult.section[sectionIndex]
+									.question) {
 									if (
 										allquestion.answerStatus == "C" &&
 										question.questionId == allquestion.questionId
@@ -593,9 +592,11 @@ module.exports = (app, db) => {
 							(o) => o.questionId === question.questionId
 						);
 
-						sectionArr[sectionIndex]["question"][questionIndex][
-							"questionLevel"
-						] = picked?.questionLevel;
+						if (typeof picked != "undefined") {
+							sectionArr[sectionIndex]["question"][questionIndex][
+								"questionLevel"
+							] = picked.questionLevel;
+						}
 
 						if (writePercentage == 0) {
 							sectionArr[sectionIndex]["question"][questionIndex][
