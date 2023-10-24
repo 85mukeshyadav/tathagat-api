@@ -588,9 +588,13 @@ module.exports = (app, db) => {
 							}
 						}
 
-						var picked = s[0].Section[sectionIndex]?.QuestionList.find(
-							(o) => o.questionId === question.questionId
-						);
+						var picked;
+
+						if (typeof s[0].Section[sectionIndex] != "undefined") {
+							picked = s[0].Section[sectionIndex].QuestionList.find(
+								(o) => o.questionId === question.questionId
+							);
+						}
 
 						if (typeof picked != "undefined") {
 							sectionArr[sectionIndex]["question"][questionIndex][
