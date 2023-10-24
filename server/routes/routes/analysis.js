@@ -574,9 +574,11 @@ module.exports = (app, db) => {
 					for (var question of secData.question) {
 						var writePercentage = 0;
 						for (var leaderBoard of leaderboardresult) {
-							if (JSON.parse(leaderBoard.testResult)?.section[sectionIndex]) {
-								for (var allquestion of JSON.parse(leaderBoard.testResult)
-									.section[sectionIndex].question) {
+							const section = JSON.parse(leaderBoard.testResult)?.section[
+								sectionIndex
+							];
+							if (section) {
+								for (var allquestion of section?.question) {
 									if (
 										allquestion.answerStatus == "C" &&
 										question.questionId == allquestion.questionId
