@@ -58,7 +58,13 @@ module.exports = (app, db) => {
 		let scoreData = await getTestSectionRank(params, sec);
 		let score = scoreData.score;
 		let rank = parseInt(scoreData.rank);
-		let totalEnrolledStudent = parseInt(usercount);
+		let totalEnrolledStudent;
+		if (typeof params.totalcount != undefined) {
+			totalEnrolledStudent = parseInt(params.totalcount);
+		} else {
+			totalEnrolledStudent = parseInt(usercount);
+		}
+
 		let percentile =
 			((totalEnrolledStudent - rank + 1) / totalEnrolledStudent) * 100;
 		let sectionNum = sec;
