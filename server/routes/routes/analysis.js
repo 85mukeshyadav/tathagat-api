@@ -505,6 +505,7 @@ module.exports = (app, db) => {
 						result["Qans"] = Qans[0];
 
 						var leaderBoardList = [];
+
 						for (var lead of leaderboardresult) {
 							leaderBoardList.push({
 								netScore: JSON.parse(lead.testResult).netScore,
@@ -518,15 +519,17 @@ module.exports = (app, db) => {
 						});
 
 						leaderBoardList = leaderBoardList.reverse();
+						let leaderBoardRank = 1+parseInt(leaderBoardList.findIndex( x => x.userId == params.userId ));
+						console.log("leaderBoardRank",leaderBoardRank)
 
 						result["leaderBoardList"] = leaderBoardList;
 
 						result["overallPerformanceSummary"] = {
-							rank: scoreData.rank,
+							rank: leaderBoardRank,
 							score: s.testResult.netScore,
 							attempted: sectionArr.reduce((a, b) => a + b.answered, 0),
 							accuracy: overallAccuracy / sectionArr.length,
-							percentile: (overallPercentile / sectionArr.length).toFixed(2),
+							percentile: ((leaderBoardRank / (leaderBoardList.length)) * 100).toFixed(2),
 						};
 
 						res.send({ status: 200, data: result });
