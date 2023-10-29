@@ -519,8 +519,12 @@ module.exports = (app, db) => {
 						});
 
 						leaderBoardList = leaderBoardList.reverse();
-						let leaderBoardRank = 1+parseInt(leaderBoardList.findIndex( x => x.userId == params.userId ));
-						console.log("leaderBoardRank",leaderBoardRank)
+						let leaderBoardRank =
+							1 +
+							parseInt(
+								leaderBoardList.findIndex((x) => x.userId == params.userId)
+							);
+						console.log("leaderBoardRank", leaderBoardRank);
 
 						result["leaderBoardList"] = leaderBoardList;
 
@@ -529,7 +533,11 @@ module.exports = (app, db) => {
 							score: s.testResult.netScore,
 							attempted: sectionArr.reduce((a, b) => a + b.answered, 0),
 							accuracy: overallAccuracy / sectionArr.length,
-							percentile: ((leaderBoardRank / (leaderBoardList.length)) * 100).toFixed(2),
+							percentile: (
+								((leaderBoardList.length - leaderBoardRank) /
+									leaderBoardList.length) *
+								100
+							).toFixed(2),
 						};
 
 						res.send({ status: 200, data: result });
