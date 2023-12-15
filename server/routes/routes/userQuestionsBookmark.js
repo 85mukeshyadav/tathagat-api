@@ -7,6 +7,8 @@ const {
 	getBookmarkQue,
 	profileUpdate,
 	getProfile,
+	getBanner,
+	addBanner
 } = require("../../helper/helper");
 const cors = require("cors");
 
@@ -137,4 +139,32 @@ module.exports = (app, db) => {
 			res.status(200).send({ status: 404, eroor: "User not found!" });
 		}
 	});
+
+	app.get("/getbanner", cors(), async (req, res) => {
+		req.db = db;
+		const banner = await getBanner(req);
+		if (banner) {
+			res.status(200).send({ status: 200, data: banner });
+		} else {
+			res.status(200).send({ status: 404, eroor: "Banner not found!" });
+		}
+	});
+
+
+	app.post("/addbanner", upload.single("img"), /* name attribute of <file> element in your form */ async (req, res) => {
+			req.db = db;
+			if (req.file) {
+				const tempPath = req.file.path;
+				req.body.imagepath = tempPath;
+				console.log(tempPath);
+			}
+			var userProfile = await addBanner(req);
+			if (userProfile) {
+				res.status(200).send( userProfile );
+			} else {
+				res.status(200).send({ status: 400, eroor: "Error while updating profile" });
+			}
+		}
+	);
+
 };

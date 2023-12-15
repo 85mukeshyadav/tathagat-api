@@ -156,4 +156,40 @@ module.exports = {
 				});
 		});
 	},
+
+	getBanner: function (req) {
+		return new Promise(async (resolve) => {
+			const { banner } = req.db;
+			banner
+				.findAll({ where: { } })
+				.then((s) => {
+					if (!s) {
+						resolve(null);
+					} else {
+						resolve(s);
+					}
+				})
+				.catch((err) => {
+					console.log(err);
+				});
+		});
+	},
+
+	addBanner: function (req) {
+		return new Promise(async (resolve) => {
+			const { banner } = req.db;
+			banner.create({
+				title: req.body.title,
+				description: req.body.description,
+				image_url: req.body.imagepath,
+					status: 1,
+
+				})
+				.then((s) => {
+					if (s) {
+						resolve({ status: 200, message: "done" });
+					}
+				});
+		});
+	},
 };
