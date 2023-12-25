@@ -8,7 +8,7 @@ const { authorize } = require('../../middleware/auth');
 const { sequelize } = require('../../config/db');
 const { Op } = require("sequelize");
 const cors = require("cors");
-const { default: axios } = require('axios');
+const { default: fetch } = require('node-fetch');
 // routes
 
 module.exports = (app, db) => {
@@ -252,7 +252,9 @@ module.exports = (app, db) => {
     const mobile = req.body.mobile;
     const otp = Math.floor(1000 + Math.random() * 9000);
 
-    axios.post(`https://japi.instaalerts.zone/httpapi/QueryStringReceiver?ver=1.0&key=nNTT1B6KaHaxEqQc0omzPQ==&encrpt=0&dest=91${mobile}&send=TATHGT&dlt_entity_id=1101538550000021740&dlt_template_id=1107170349275465220&text=Dear ${name}, use ${otp} as your sign up otp for mytathagat.com. OTP is confidential and valid for 10 mins. Never share your OTP with any unauthorized person.`,)
+    fetch(`https://japi.instaalerts.zone/httpapi/QueryStringReceiver?ver=1.0&key=nNTT1B6KaHaxEqQc0omzPQ==&encrpt=0&dest=91${mobile}&send=TATHGT&dlt_entity_id=1101538550000021740&dlt_template_id=1107170349275465220&text=Dear ${name}, use ${otp} as your sign up otp for mytathagat.com. OTP is confidential and valid for 10 mins. Never share your OTP with any unauthorized person.`, {
+      method: 'POST',
+    })
       .then((resp) => {
         console.log(resp);
         res.status(200).json({ otp: otp });
