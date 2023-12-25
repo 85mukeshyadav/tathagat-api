@@ -48,6 +48,7 @@ module.exports = (app, db) => {
 			PackagePrice: parseFloat(req.body.PackagePrice),
 			TestList: req.body.TestList,
 			officialDesc: req.body.officialDesc,
+			is_referral_required: req.body.isReferralRequired,
 		};
 		if (courseId || subjectId || topicId || chapterId) {
 			if (req.body.packageId) {
@@ -857,12 +858,12 @@ module.exports = (app, db) => {
 		res.status(200).json(arr);
 	});
 
-	app.post("/mypackages/", async (req, res) => {
+	app.post("/mypackages", async (req, res) => {
 		const { packages } = db;
 
 		let pkSqlQuery = "SELECT";
 		pkSqlQuery +=
-			" pkg.packageId, pkg.PackageName, pkg.packagePrice, cou.courseId,cou.courseName,sub.subjectId,sub.subjectName, chp.chapterName,tpc.topicId, tpc.topicName, pkg.thumbnail ";
+			" pkg.packageId, pkg.PackageName, pkg.packagePrice, cou.courseId,cou.courseName,sub.subjectId,sub.subjectName, chp.chapterName,tpc.topicId, tpc.topicName, pkg.thumbnail, pkg.is_referral_required";
 		pkSqlQuery += " FROM packages as pkg ";
 		pkSqlQuery +=
 			" LEFT JOIN  courses as cou ON cou.courseId = pkg.courseCourseId ";
