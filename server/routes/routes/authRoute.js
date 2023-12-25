@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const { authorize } = require('../../middleware/auth');
 const { sequelize } = require('../../config/db');
 const { Op } = require("sequelize");
+const cors = require("cors");
 // routes
 
 module.exports = (app, db) => {
@@ -14,12 +15,26 @@ module.exports = (app, db) => {
   // register/signup
   app.post(
     '/register',
+    cors(),
     asyncHandler(async (req, res, next) => {
       const {
         firstName, lastName, email_Id,
         mobileNumber, password, role,
       } = req.body;
       console.log("req.body", req.body)
+
+      const userExists = await users.findOne({
+        where: {
+          email_Id: email_Id,
+          mobileNumber: mobileNumber
+        }
+      })
+
+      console.log("userExists", userExists)
+
+      if (userExists) {
+        return next(new ErrorResponse('User already exists', 400));
+      }
 
       // hashing password
       const hashedPassword = await bcrypt.hash(password, 8);
@@ -44,7 +59,7 @@ module.exports = (app, db) => {
 
   // login/signin
 
-  app.post('/login', async (req, res, next) => {
+  app.post('/login', cors(), async (req, res, next) => {
     const { email_Id, password } = req.body;
 
     //validation email and password
@@ -231,4 +246,23 @@ module.exports = (app, db) => {
   
   });
 
+  app.post('/get-otp', (req, res) => {
+    const name = req.body.name || 'User';
+    const mobile = req.body.mobile;
+    const otp = Math.floor(1000 + Math.random() * 9000);
+
+    fetch(`https://japi.instaalerts.zone/httpapi/QueryStringReceiver?ver=1.0&key=nNTT1B6KaHaxEqQc0omzPQ==&encrpt=0&dest=91${mobile}&send=TATHGT&dlt_entity_id=1101538550000021740&dlt_template_id=1107170349275465220&text=Dear ${name}, use ${otp} as your sign up otp for mytathagat.com. OTP is confidential and valid for 10 mins. Never share your OTP with any unauthorized person.`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then((resp) => {
+        console.log(resp);
+        res.status(200).json({ otp: otp });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  })
 };
