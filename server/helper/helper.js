@@ -192,4 +192,36 @@ module.exports = {
 				});
 		});
 	},
+
+	addReferral: function (req) {
+		return new Promise(async (resolve) => {
+			const { referral } = req.db;
+			referral.create({
+				userEmailId: req.body.userEmailId,
+				referee_1_name: req.body.referee_1_name,
+				referee_1_phone: req.body.referee_1_phone,
+				referee_2_name: req.body.referee_2_name,
+				referee_2_phone: req.body.referee_2_phone,
+    	}).then((s) => {
+					if (s) {
+						resolve({ status: 200, message: "done" });
+					}
+				});
+		})
+	},
+
+	getReferral: function (req) {
+		return new Promise(async (resolve) => {
+			const { referral } = req.db;
+			referral.findOne({
+				where: {
+					userEmailId: req.query.userEmailId
+				}
+			}).then((result) => {
+				resolve(result);
+			}).catch((err) => {
+				resolve(null);
+			})
+		});
+	}
 };

@@ -40,6 +40,7 @@ router.blogsroute(app, db);
 router.userquestionsbookmark(app, db);
 router.paymentrouter(app, db);
 router.analysisrouter(app, db);
+router.referralrouter(app, db);
 
 app.use("/uploads", express.static("uploads"));
 

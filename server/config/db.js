@@ -54,6 +54,7 @@ const userPackages = require('../models/user_packages.js')(sequelize, Sequelize)
 const testAttempted = require('../models/test_attempted.js')(sequelize, Sequelize);
 const userQuestionsBookmark = require('../models/user_questions_bookmark.js')(sequelize, Sequelize);
 const banner = require('../models/banner.js')(sequelize, Sequelize);
+const referral = require('../models/referral.js')(sequelize, Sequelize);
 
 
 subject.belongsTo(course);
@@ -157,5 +158,6 @@ module.exports = {
   testAttempted,
   courses,
   userQuestionsBookmark,
-  banner
+  banner,
+  referral,
 };

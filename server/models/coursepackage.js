@@ -131,6 +131,12 @@ const {
         defaultValue: "1",
         field: "show_to_all"
       },
+
+      is_referral_required: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        field: "is_referral_required"
+      },
     };
     // const options = {
     //   tableName: "course",
