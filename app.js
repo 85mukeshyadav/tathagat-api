@@ -41,6 +41,9 @@ router.userquestionsbookmark(app, db);
 router.paymentrouter(app, db);
 router.analysisrouter(app, db);
 router.referralrouter(app, db);
+router.forumsrouter(app,db);
+router.wptopicrouter(app,db);
+router.wppostsrouter(app,db);
 
 app.use("/uploads", express.static("uploads"));
 

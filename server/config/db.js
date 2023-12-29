@@ -26,6 +26,30 @@ const sequelize = new Sequelize(
     },
   }
 );
+
+
+const WP_DB = process.env.WP_DB;
+const sequelize_wp = new Sequelize(
+  WP_DB,
+  process.env.WP_DB_USER,
+  process.env.WP_DB_PWD,
+  {
+    host: process.env.WP_HOST,
+    dialect: 'mariadb',
+    pool: {
+      max: 5000,
+      min: 0,
+      acquire: 300000,
+      idle: 10000,
+    },
+    define: {
+      timestamps: false,
+    },
+  }
+);
+
+
+
 // new model are listed here so that they can be frmed in database
 const subject = require('../models/subject.js')(sequelize, Sequelize);
 const questions = require('../models/questions.js')(sequelize, Sequelize);
@@ -55,6 +79,10 @@ const testAttempted = require('../models/test_attempted.js')(sequelize, Sequeliz
 const userQuestionsBookmark = require('../models/user_questions_bookmark.js')(sequelize, Sequelize);
 const banner = require('../models/banner.js')(sequelize, Sequelize);
 const referral = require('../models/referral.js')(sequelize, Sequelize);
+
+const wpForums = require('../models/wp_forums.js')(sequelize_wp, Sequelize);
+const wpTopics = require('../models/wp_topics.js')(sequelize_wp, Sequelize);
+const wpPosts = require('../models/wp_posts.js')(sequelize_wp, Sequelize);
 
 
 subject.belongsTo(course);
@@ -115,6 +143,17 @@ sequelize
   .catch((err) => {
     console.error('Unable to connect to the database:', err);
   });
+
+
+  sequelize_wp
+  .authenticate()
+  .then(() => {
+    console.log('Connection WP has been established successfully.');
+  })
+  .catch((err) => {
+    console.error('Unable to connect to the WP database:', err);
+  });
+
 //  if change anything in model then please uncomment the below line
 
 // sequelize.sync({ alter: true });
@@ -160,4 +199,7 @@ module.exports = {
   userQuestionsBookmark,
   banner,
   referral,
+  wpForums,
+  wpTopics,
+  wpPosts,
 };

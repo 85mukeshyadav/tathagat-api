@@ -160,8 +160,19 @@ module.exports = {
 	getBanner: function (req) {
 		return new Promise(async (resolve) => {
 			const { banner } = req.db;
+
+			const { Op } = require('sequelize');
+
+			const currentDate = new Date();
+
+
 			banner
-				.findAll({ where: { } })
+				.findAll({
+					where: {
+					expiry_date: {
+						[Op.gt]: currentDate,
+					  },
+				  } })
 				.then((s) => {
 					if (!s) {
 						resolve(null);
@@ -182,7 +193,8 @@ module.exports = {
 				title: req.body.title,
 				description: req.body.description,
 				image_url: req.body.imagepath,
-					status: 1,
+				status: 1,
+				expiry_date:req.body.expiry_date
 
 				})
 				.then((s) => {
@@ -223,5 +235,67 @@ module.exports = {
 				resolve(null);
 			})
 		});
-	}
+	},
+
+	
+	getForums: function (req) {
+		return new Promise(async (resolve) => {
+			const { wpForums } = req.db;
+			wpForums
+				.findAll({ where: {"parentid":parseInt(req.query.parentid)} })
+				.then((s) => {
+					if (!s) {
+						resolve(null);
+					} else {
+						console.log(s)
+						resolve(s);
+					}
+				})
+				.catch((err) => {
+					console.log(err);
+				});
+		});
+	},
+
+	
+	getTopics: function (req) {
+		return new Promise(async (resolve) => {
+			const { wpTopics } = req.db;
+			wpTopics
+				.findAll({ where: {"forumid":parseInt(req.query.forumid)} })
+				.then((s) => {
+					if (!s) {
+						resolve(null);
+					} else {
+						console.log(s)
+						resolve(s);
+					}
+				})
+				.catch((err) => {
+					console.log(err);
+				});
+		});
+	},
+
+
+	getPosts: function (req) {
+		return new Promise(async (resolve) => {
+			const { wpPosts } = req.db;
+			wpPosts
+				.findAll({ where: {"topicid":parseInt(req.query.topicid),"parentid":parseInt(req.query.parentid)} })
+				.then((s) => {
+					if (!s) {
+						resolve(null);
+					} else {
+						console.log(s)
+						resolve(s);
+					}
+				})
+				.catch((err) => {
+					console.log(err);
+				});
+		});
+	},
 };
+
+

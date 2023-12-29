@@ -13,6 +13,9 @@ const userQuestionsBookmark = require("./routes/userQuestionsBookmark");
 const paymentRoutes = require("./routes/payment");
 const analysisRoutes = require("./routes/analysis");
 const referralRoutes = require("./routes/referralRoute");
+const forumsRoutes = require("./routes/forums");
+const wptopicRoutes = require("./routes/topics");
+const wppostsRoutes = require("./routes/posts");
 
 // Add access to the app and db objects to each route
 
@@ -73,6 +76,19 @@ function referralrouter(app, db) {
 	return referralRoutes(app, db);
 }
 
+function forumsrouter(app,db){
+	return forumsRoutes(app, db);
+}
+
+function wptopicrouter(app,db){
+	return wptopicRoutes(app, db);
+}
+
+
+function wppostsrouter(app,db){
+	return wppostsRoutes(app, db);
+}
+
 
 module.exports = {
 	chapterrouter,
@@ -89,5 +105,8 @@ module.exports = {
 	userquestionsbookmark,
 	paymentrouter,
 	analysisrouter,
-	referralrouter
+	referralrouter,
+	forumsrouter,
+	wptopicrouter,
+	wppostsrouter,
 };
