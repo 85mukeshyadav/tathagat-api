@@ -17,6 +17,8 @@ const forumsRoutes = require("./routes/forums");
 const wptopicRoutes = require("./routes/topics");
 const wppostsRoutes = require("./routes/posts");
 
+const wpblogRoutes = require("./routes/blog");
+
 // Add access to the app and db objects to each route
 
 function authrouter(app, db) {
@@ -89,6 +91,10 @@ function wppostsrouter(app,db){
 	return wppostsRoutes(app, db);
 }
 
+function wpblogrouter(app,db){
+	return wpblogRoutes(app, db);
+} 
+
 
 module.exports = {
 	chapterrouter,
@@ -109,4 +115,5 @@ module.exports = {
 	forumsrouter,
 	wptopicrouter,
 	wppostsrouter,
+	wpblogrouter,
 };

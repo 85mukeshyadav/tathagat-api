@@ -169,10 +169,11 @@ module.exports = {
 			banner
 				.findAll({
 					where: {
-					expiry_date: {
-						[Op.gt]: currentDate,
-					  },
-				  } })
+						expiry_date: {
+							[Op.gt]: currentDate,
+						},
+					}
+				})
 				.then((s) => {
 					if (!s) {
 						resolve(null);
@@ -194,9 +195,9 @@ module.exports = {
 				description: req.body.description,
 				image_url: req.body.imagepath,
 				status: 1,
-				expiry_date:req.body.expiry_date
+				expiry_date: req.body.expiry_date
 
-				})
+			})
 				.then((s) => {
 					if (s) {
 						resolve({ status: 200, message: "done" });
@@ -214,11 +215,11 @@ module.exports = {
 				referee_1_phone: req.body.referee_1_phone,
 				referee_2_name: req.body.referee_2_name,
 				referee_2_phone: req.body.referee_2_phone,
-    	}).then((s) => {
-					if (s) {
-						resolve({ status: 200, message: "done" });
-					}
-				});
+			}).then((s) => {
+				if (s) {
+					resolve({ status: 200, message: "done" });
+				}
+			});
 		})
 	},
 
@@ -237,12 +238,12 @@ module.exports = {
 		});
 	},
 
-	
+
 	getForums: function (req) {
 		return new Promise(async (resolve) => {
 			const { wpForums } = req.db;
 			wpForums
-				.findAll({ where: {"parentid":parseInt(req.query.parentid)} })
+				.findAll({ where: { "parentid": parseInt(req.query.parentid) } })
 				.then((s) => {
 					if (!s) {
 						resolve(null);
@@ -257,12 +258,12 @@ module.exports = {
 		});
 	},
 
-	
+
 	getTopics: function (req) {
 		return new Promise(async (resolve) => {
 			const { wpTopics } = req.db;
 			wpTopics
-				.findAll({ where: {"forumid":parseInt(req.query.forumid)} })
+				.findAll({ where: { "forumid": parseInt(req.query.forumid) } })
 				.then((s) => {
 					if (!s) {
 						resolve(null);
@@ -280,9 +281,56 @@ module.exports = {
 
 	getPosts: function (req) {
 		return new Promise(async (resolve) => {
-			const { wpPosts } = req.db;
+			const { wpPosts ,wpUser} = req.db;
+
+			const offset = (parseInt(req.query.pageNumber) - 1) * parseInt(req.query.pageSize);
+			const limit = parseInt(req.query.pageSize);
+
+
 			wpPosts
-				.findAll({ where: {"topicid":parseInt(req.query.topicid),"parentid":parseInt(req.query.parentid)} })
+				.findAll({ include: [
+					{
+					  model: wpUser,
+					  attributes: ['user_login', 'user_email','user_nicename','display_name'], // Select specific columns from WpUser
+					},
+				  ],
+					where: { "topicid": parseInt(req.query.topicid), "parentid": parseInt(req.query.parentid) },
+					offset,
+					limit, })
+				.then((s) => {
+					if (!s) {
+						resolve(null);
+					} else {
+						console.log(s)
+						resolve(s);
+					}
+				})
+				.catch((err) => {
+					console.log(err);
+				});
+		});
+	},
+
+
+	getBlog: function (req) {
+		return new Promise(async (resolve) => {
+			const { wpBlog,wpUser } = req.db;
+
+			const offset = (parseInt(req.query.pageNumber) - 1) * parseInt(req.query.pageSize);
+			const limit = parseInt(req.query.pageSize);
+
+			wpBlog
+				.findAll({ include: [
+					{
+					  model: wpUser,
+					  attributes: ['user_login', 'user_email','user_nicename','display_name'], // Select specific columns from WpUser
+					},
+				  ],
+					where: { "post_status": "publish" } ,
+					offset,
+					limit,
+					order: [["ID", "DESC"]],
+				})
 				.then((s) => {
 					if (!s) {
 						resolve(null);

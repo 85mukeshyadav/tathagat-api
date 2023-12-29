@@ -44,6 +44,8 @@ router.referralrouter(app, db);
 router.forumsrouter(app,db);
 router.wptopicrouter(app,db);
 router.wppostsrouter(app,db);
+router.wpblogrouter(app,db);
+
 
 app.use("/uploads", express.static("uploads"));
 

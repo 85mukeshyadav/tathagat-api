@@ -83,6 +83,8 @@ const referral = require('../models/referral.js')(sequelize, Sequelize);
 const wpForums = require('../models/wp_forums.js')(sequelize_wp, Sequelize);
 const wpTopics = require('../models/wp_topics.js')(sequelize_wp, Sequelize);
 const wpPosts = require('../models/wp_posts.js')(sequelize_wp, Sequelize);
+const wpBlog = require('../models/wp_blog.js')(sequelize_wp, Sequelize);
+const wpUser = require('../models/wp_user.js')(sequelize_wp, Sequelize);
 
 
 subject.belongsTo(course);
@@ -131,7 +133,17 @@ users.hasMany(user_course);
 //userPackages.hasMany(packages);
 //userPackages.hasMany(users);
 //users.hasMany(userPackages);
-//packages.hasMany(userPackages);
+//packages.hasMany(userPackage1s);
+
+
+
+wpBlog.belongsTo(wpUser, { foreignKey: 'post_author', targetKey: 'ID' });
+wpUser.hasMany(wpBlog, { foreignKey: 'post_author', sourceKey: 'ID' });
+
+
+wpPosts.belongsTo(wpUser, { foreignKey: 'userid', targetKey: 'ID' });
+wpUser.hasMany(wpPosts, { foreignKey: 'userid', sourceKey: 'ID' });
+
 
 
 
@@ -202,4 +214,6 @@ module.exports = {
   wpForums,
   wpTopics,
   wpPosts,
+  wpBlog,
+  wpUser
 };
