@@ -354,12 +354,12 @@ module.exports = {
 			try {
 				// Create a new post
 				const newWpforoPost = await wpPosts.create({
-					parentid: req.body?.parentid,
-					forumid: req.body?.forumid, // Replace with the actual forum ID
-					topicid: req.body?.topicid, // Replace with the actual topic ID
-					userid: req.body?.userid, // Replace with the actual user ID
-					title: req.body?.title,
-					body: req.body?.body,
+					parentid: req.body.parentid,
+					forumid: req.body.forumid, // Replace with the actual forum ID
+					topicid: req.body.topicid, // Replace with the actual topic ID
+					userid: req.body.userid, // Replace with the actual user ID
+					title: req.body.title,
+					body: req.body.body,
 					likes: 0,
 					votes: 0,
 					is_answer: 0,
