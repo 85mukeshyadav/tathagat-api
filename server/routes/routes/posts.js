@@ -11,7 +11,8 @@ const {
 	addBanner,
 	getForums,
 	getTopics,
-	getPosts
+	getPosts,
+	addpost
 } = require("../../helper/helper");
 const cors = require("cors");
 
@@ -29,6 +30,18 @@ module.exports = (app, db) => {
 			res.status(200).send({ status: 200, data: posts });
 		} else {
 			res.status(200).send({ status: 404, eroor: "posts not found!" });
+		}
+	});
+
+
+	app.post("/addposts", cors(), async (req, res) => {
+		req.db = db;
+		console.log(req.body)
+		const posts = await addpost(req);
+		if (posts) {
+			res.status(200).send({ status: 200, data: posts,message:"Successfully added" });
+		} else {
+			res.status(200).send({ status: 404, eroor: "Try Again " });
 		}
 	});
 

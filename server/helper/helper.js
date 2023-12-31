@@ -326,7 +326,7 @@ module.exports = {
 					  attributes: ['user_login', 'user_email','user_nicename','display_name'], // Select specific columns from WpUser
 					},
 				  ],
-					where: { "post_status": "publish" } ,
+					where: { "post_status": "publish","ping_status":"open"} ,
 					offset,
 					limit,
 					order: [["ID", "DESC"]],
@@ -344,6 +344,45 @@ module.exports = {
 				});
 		});
 	},
+
+
+	addpost: function (req) {
+		return new Promise(async (resolve) => {
+			const { wpPosts ,wpUser} = req.db;
+
+		
+			try {
+				// Create a new post
+				const newWpforoPost = await wpPosts.create({
+					parentid: req.body?.parentid,
+					forumid: req.body?.forumid, // Replace with the actual forum ID
+					topicid: req.body?.topicid, // Replace with the actual topic ID
+					userid: req.body?.userid, // Replace with the actual user ID
+					title: req.body?.title,
+					body: req.body?.body,
+					likes: 0,
+					votes: 0,
+					is_answer: 0,
+					is_first_post: 0,
+					status: 0,
+					name: "",
+					email: '',
+					private: 0,
+					root: null,
+				  });
+			  
+			
+				console.log('New post added:', newWpforoPost);
+				resolve(newWpforoPost)
+
+			  } catch (error) {
+				console.error('Error adding post:', error);
+				resolve(null)
+			  }
+
+		});
+	},
+
 };
 
 

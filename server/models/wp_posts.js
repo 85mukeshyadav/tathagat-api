@@ -11,6 +11,9 @@ module.exports = (sequelize) => {
             type: DataTypes.BIGINT.UNSIGNED,
             allowNull: false,
             primaryKey: true,
+            defaultValue: DataTypes.UUIDV4,
+            autoIncrement: true,
+            comment: null,
         },
         parentid: {
             type: DataTypes.BIGINT.UNSIGNED,
@@ -39,13 +42,19 @@ module.exports = (sequelize) => {
         },
         created: {
             type: DataTypes.DATE,
-            allowNull: false,
-            defaultValue: '0000-00-00 00:00:00',
+            allowNull: true,
+            defaultValue: sequelize.fn('current_timestamp'),
+            primaryKey: false,
+            autoIncrement: false,
+            comment: null,
         },
         modified: {
             type: DataTypes.DATE,
-            allowNull: false,
-            defaultValue: '0000-00-00 00:00:00',
+            allowNull: true,
+            defaultValue: sequelize.fn('current_timestamp'),
+            primaryKey: false,
+            autoIncrement: false,
+            comment: null,
         },
         likes: {
             type: DataTypes.INTEGER.UNSIGNED,
