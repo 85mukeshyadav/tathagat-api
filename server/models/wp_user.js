@@ -58,6 +58,15 @@ module.exports = (sequelize) => {
             allowNull: false,
             defaultValue: '',
           },
+          mobileNumber: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+            defaultValue: null,
+            primaryKey: false,
+            autoIncrement: false,
+            comment: null,
+            field: 'mobileNumber',
+          },
         }
     
     const options = {

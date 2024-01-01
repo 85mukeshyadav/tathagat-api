@@ -12,7 +12,7 @@ const { default: fetch } = require('node-fetch');
 // routes
 
 module.exports = (app, db) => {
-  const { users } = db;
+  const { users,wpUser } = db;
   // register/signup
   app.post(
     '/register',
@@ -49,6 +49,10 @@ module.exports = (app, db) => {
         mobileNumber: mobileNumber,
         password: hashedPassword,
         user_type: role,
+        dob: req.body.dob ? req.body.dob : "",
+        state: req.body.state ? req.body.state : "",
+        city: req.body.city ? req.body.city : "",
+
       });
 
       //create token
@@ -262,5 +266,52 @@ module.exports = (app, db) => {
       .catch((err) => {
         console.log(err);
       });
-  })
+  });
+
+   // get a single user
+   app.post('/user-login', async function (req, res) {
+
+
+    var userExists = await users.findOne({
+      where: {
+        mobileNumber: req.body.mobileNumber
+      }
+    })
+
+    console.log("userExists", userExists)
+
+    if (userExists) {
+      res.status(200).json(userExists);
+    }else{
+       userExists = await wpUser.findOne({
+        where: {
+          mobileNumber: req.body.mobileNumber
+        }
+      })
+
+      if (userExists) {
+
+        const user = await users.create({
+          username: userExists.display_name ,
+          lastName: "",
+          email_Id: userExists.user_email ,
+          mobileNumber: userExists.mobileNumber,
+          password: userExists.user_pass,
+          user_type: "",
+          dob: "",
+          state: "",
+          city:  "",
+  
+        });
+        res.status(200).json(user);
+      }else{
+        res.status(200).send({status:200,message:"User not Found"});
+
+      }
+
+    }
+
+  
+  });
+
 };

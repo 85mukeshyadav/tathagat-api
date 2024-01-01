@@ -294,7 +294,7 @@ module.exports = {
 					  attributes: ['user_login', 'user_email','user_nicename','display_name'], // Select specific columns from WpUser
 					},
 				  ],
-					where: { "topicid": parseInt(req.query.topicid), "parentid": parseInt(req.query.parentid) },
+					where: { "topicid": parseInt(req.query.topicid) },
 					offset,
 					limit, })
 				.then((s) => {
