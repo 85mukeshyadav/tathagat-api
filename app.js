@@ -36,6 +36,11 @@ router.userquestionsbookmark(app, db);
 router.paymentrouter(app, db);
 router.analysisrouter(app, db);
 router.referralrouter(app, db);
+router.forumsrouter(app,db);
+router.wptopicrouter(app,db);
+router.wppostsrouter(app,db);
+router.wpblogrouter(app,db);
+
 
 app.use("/uploads", express.static("uploads"));
 
@@ -44,6 +49,15 @@ const port = process.env.PORT || 3000;
 
 app.listen(port, () => {
 	console.log(`Server is running on port ${port}`);
+});
+
+
+app.use((_req,res,next) => {
+
+res.header('Access-Control-Allow-Origin','*')
+res.header('Access-Control-Allow-Headers','*')
+
+next();
 });
 
 app.use((error, req, res, next) => {

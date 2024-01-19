@@ -12,7 +12,7 @@ const { default: fetch } = require('node-fetch');
 // routes
 
 module.exports = (app, db) => {
-  const { users } = db;
+  const { users,wpUser } = db;
   // register/signup
   app.post(
     '/register',
@@ -49,6 +49,10 @@ module.exports = (app, db) => {
         mobileNumber: mobileNumber,
         password: hashedPassword,
         user_type: role,
+        dob: req.body.dob ? req.body.dob : "",
+        state: req.body.state ? req.body.state : "",
+        city: req.body.city ? req.body.city : "",
+
       });
 
       //create token
@@ -72,29 +76,29 @@ module.exports = (app, db) => {
     users.findOne({ where: { email_Id: email_Id } })
       .then(async (user) => {
         console.log("🚀 ~ file: authRoute.js ~ line 47 ~  email_Id, password }", user)
-      if (!user) {
-        return next(new ErrorResponse('Invalid credential', 401));
-      }
-      const isMatch = async () => {
-        //check if password matchs
-        // let hashedPassword = await bcrypt.hashSync(password, 8);
-        const _isMatch = bcrypt.compareSync(password, user.password);
-        console.log("🚀 ~ file: authRoute.js ~ line 622 ~ isMatch ~ hashedPassword", _isMatch, user.password,)
-        return _isMatch;
-      };
-
-      isMatch().then((resp) => {
-        // console.log("🚀 ~ file: authRoute.js ~ line 62 ~ isMatch ~ hashedPassword, user.password", resp)
-        if (resp) {
-          sendTokenResponse(user, 200, res);
+        if (!user) {
+          return next(new ErrorResponse('Invalid credential', 401));
         }
-        else {
-          return res.status(401).json({ 'msg': "wrong crentials" });
-        }
-      })
+        const isMatch = async () => {
+          //check if password matchs
+          // let hashedPassword = await bcrypt.hashSync(password, 8);
+          const _isMatch = bcrypt.compareSync(password, user.password);
+          console.log("🚀 ~ file: authRoute.js ~ line 622 ~ isMatch ~ hashedPassword", _isMatch, user.password,)
+          return _isMatch;
+        };
 
-      //create token
-    });
+        isMatch().then((resp) => {
+          // console.log("🚀 ~ file: authRoute.js ~ line 62 ~ isMatch ~ hashedPassword, user.password", resp)
+          if (resp) {
+            sendTokenResponse(user, 200, res);
+          }
+          else {
+            return res.status(401).json({ 'msg': "wrong crentials" });
+          }
+        })
+
+        //create token
+      });
   });
 
   // to see the logged user
@@ -155,29 +159,29 @@ module.exports = (app, db) => {
   // get a single user
   app.get('/user_info/:email_Id', function (req, res) {
     users.findOne({ where: { email_Id: req.params.email_Id } })
-        .then(async (user) => {
-          console.log("User", user)
-          if (!user) {
-            return res.status(401).json({ 'msg': "wrong crentials" });
-          }else {
-            return res.status(200).json(user);
+      .then(async (user) => {
+        console.log("User", user)
+        if (!user) {
+          return res.status(401).json({ 'msg': "wrong crentials" });
+        } else {
+          return res.status(200).json(user);
 
-          }
-          //create token
-        });
+        }
+        //create token
+      });
   });
 
   app.get('/alluser', function (req, res) {
     var whereClouse = {}
-    if(typeof req.query !="undefined"){
-      if(typeof req.query.userType !="undefined"){
-        if(req.query.userType !='')
+    if (typeof req.query != "undefined") {
+      if (typeof req.query.userType != "undefined") {
+        if (req.query.userType != '')
           whereClouse.user_type = req.query.userType
       }
     }
-    var orderBy = [['username','ASC']];
+    var orderBy = [['username', 'ASC']];
     users
-      .findAll({where:whereClouse, order:orderBy})
+      .findAll({ where: whereClouse, order: orderBy })
       .then((s) => {
         res.status(200).json(s);
       })
@@ -190,33 +194,32 @@ module.exports = (app, db) => {
   app.get('/find-user/:type/:userName', function (req, res) {
     console.log("params === ", req.params);
     var userNameStr = '';
-    if(typeof req.params.userName != "undefined"){
+    if (typeof req.params.userName != "undefined") {
       userNameStr = req.params.userName;
     }
     var usertype = req.params.type;
     var result = [];
     var query = "";
-    if(userNameStr !='' && usertype !='')
-    {
-      var serachStr = '%'+userNameStr+'%';
+    if (userNameStr != '' && usertype != '') {
+      var serachStr = '%' + userNameStr + '%';
       users
-      .findAll({ where: {user_type:usertype, [Op.or]: [{username: { [Op.like]: `${serachStr}` }}, {email_id: { [Op.like]: `${serachStr}`}}, {mobileNumber: { [Op.like]: `${serachStr}`}}  ]} })
-      .then((s) => {
-        if (s.length>0) {
-          delete s['password'];
-          console.log("result ==", s);
-          res.status(200).json(s);
-        }else{
-          console.log("'no such user exists'");
-          res.json(s);
-        }
-      })
-      .catch(function (err) {
-        console.log('coming from error');
-        console.log(err);
-        res.json(err);
-      });
-    }else{
+        .findAll({ where: { user_type: usertype, [Op.or]: [{ username: { [Op.like]: `${serachStr}` } }, { email_id: { [Op.like]: `${serachStr}` } }, { mobileNumber: { [Op.like]: `${serachStr}` } }] } })
+        .then((s) => {
+          if (s.length > 0) {
+            delete s['password'];
+            console.log("result ==", s);
+            res.status(200).json(s);
+          } else {
+            console.log("'no such user exists'");
+            res.json(s);
+          }
+        })
+        .catch(function (err) {
+          console.log('coming from error');
+          console.log(err);
+          res.json(err);
+        });
+    } else {
       res.status(200).json(result);
     }
   });
@@ -226,28 +229,29 @@ module.exports = (app, db) => {
     var result = [];
     whereClouse.user_type = 'student';
     whereClouse.signup_type = 0;
-    var orderBy = [['email_id','ASC']];
-    users.findAll({where:whereClouse, order:orderBy}).then( async(s) => {
-      if(s.length>0){
-        for (let usr of s){
+    var orderBy = [['email_id', 'ASC']];
+    users.findAll({ where: whereClouse, order: orderBy }).then(async (s) => {
+      if (s.length > 0) {
+        for (let usr of s) {
           const hashedPassword = await bcrypt.hash(usr.password_new, 8);
           //console.log('This is the password', hashedPassword);
           //console.log('User :', usr.email_Id , 'password updated: ', hashedPassword, ' Status: 1');
-          users.update({new_password: hashedPassword, signup_type:1}, { where: { email_Id: usr.email_Id } })
-          .then((userUp) => { result.push({user: usr.email_Id , password:usr.password, new_password:hashedPassword, status: userUp});
-              console.log('User :', usr.email_Id , 'password updated: ', hashedPassword, ' Status: ',userUp);
-          });
+          users.update({ new_password: hashedPassword, signup_type: 1 }, { where: { email_Id: usr.email_Id } })
+            .then((userUp) => {
+              result.push({ user: usr.email_Id, password: usr.password, new_password: hashedPassword, status: userUp });
+              console.log('User :', usr.email_Id, 'password updated: ', hashedPassword, ' Status: ', userUp);
+            });
         }
       }
       res.status(200).json(result);
     }).catch(function (err) {
-        console.log('coming from error');
-        res.json(err);
+      console.log('coming from error');
+      res.json(err);
     });
-  
+
   });
 
-  app.post('/get-otp', (req, res) => {
+  app.post('/get-otp', cors(), (req, res) => {
     const name = req.body.name || 'User';
     const mobile = req.body.mobile;
     const otp = Math.floor(1000 + Math.random() * 9000);
@@ -262,5 +266,52 @@ module.exports = (app, db) => {
       .catch((err) => {
         console.log(err);
       });
-  })
+  });
+
+   // get a single user
+   app.post('/user-login', async function (req, res) {
+
+
+    var userExists = await users.findOne({
+      where: {
+        mobileNumber: req.body.mobileNumber
+      }
+    })
+
+    console.log("userExists", userExists)
+
+    if (userExists) {
+      res.status(200).json(userExists);
+    }else{
+       userExists = await wpUser.findOne({
+        where: {
+          mobileNumber: req.body.mobileNumber
+        }
+      })
+
+      if (userExists) {
+
+        const user = await users.create({
+          username: userExists.display_name ,
+          lastName: "",
+          email_Id: userExists.user_email ,
+          mobileNumber: userExists.mobileNumber,
+          password: userExists.user_pass,
+          user_type: "",
+          dob: "",
+          state: "",
+          city:  "",
+  
+        });
+        res.status(200).json(user);
+      }else{
+        res.status(200).send({status:200,message:"User not Found"});
+
+      }
+
+    }
+
+  
+  });
+
 };

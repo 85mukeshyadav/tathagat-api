@@ -67,6 +67,48 @@ module.exports = sequelize => {
       field: "updated_at"
     },
    
+
+    expiry_date: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: sequelize.fn('current_timestamp'),
+      primaryKey: false,
+      autoIncrement: false,
+      comment: null,
+      field: "expiry_date"
+    },
+   
+
+    slug: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      primaryKey: false,
+      autoIncrement: false,
+      comment: null,
+      field: "slug"
+    },
+   
+
+    amount: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      primaryKey: false,
+      autoIncrement: false,
+      comment: null,
+      field: "amount"
+    },
+   
+
+    url: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      primaryKey: false,
+      autoIncrement: false,
+      comment: null,
+      field: "url"
+    },
+   
+
   };
 
 

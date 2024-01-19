@@ -148,7 +148,34 @@ module.exports = (sequelize) => {
       autoIncrement: false,
       comment: null,
       field: 'personal_email',
-    }
+    },
+    dob: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      defaultValue: null,
+      primaryKey: false,
+      autoIncrement: false,
+      comment: null,
+      field: 'dob',
+    },
+    state: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      defaultValue: null,
+      primaryKey: false,
+      autoIncrement: false,
+      comment: null,
+      field: 'state',
+    },
+    city: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      defaultValue: null,
+      primaryKey: false,
+      autoIncrement: false,
+      comment: null,
+      field: 'city',
+    },
   };
   const options = {
     tableName: 'users',
