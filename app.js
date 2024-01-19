@@ -14,14 +14,9 @@ const upload = multer({ dest: "uploads/" });
 
 //midlewares
 app.use(morgan("dev"));
+app.use(express.json({ limit: "50mb" }));
 app.use(bodyparser.json({ limit: "50mb" }));
-app.use(
-	bodyparser.urlencoded({
-		limit: "50mb",
-		extended: true,
-		parameterLimit: 50000,
-	})
-);
+app.use(bodyparser.urlencoded({ limit: "50mb", extended: true }));
 app.use(cookieparser());
 app.use(cors());
 
