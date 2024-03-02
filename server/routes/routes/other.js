@@ -3,7 +3,7 @@ const express = require("express");
 const { protect, authorize } = require("../../middleware/auth");
 const {
 
-	getBlog, getLessons, getQuizzes, getVideos
+	getBlog, getLessons, getQuizzes, getVideos, sendmail
 } = require("../../helper/helper");
 const cors = require("cors");
 
@@ -70,6 +70,27 @@ module.exports = (app, db) => {
 			}
 		} else {
 			res.status(200).send({ status: 404, eroor: "videos not found!" });
+		}
+	});
+
+// Route to send email
+	app.post("/sendmail", cors() ,async (req, res) => {
+		try {
+			// Setup email data
+			const mailOptions = {
+				from: 'support@prepcha.com',
+				to: req.body.to,
+				subject: req.body.subject,
+				text: req.body.text
+			};
+
+			// Send email
+			const info = await sendmail(mailOptions);
+			console.log('Email sent successfully:', info);
+			res.send('Email sent successfully');
+		} catch (error) {
+			console.error('Error occurred while sending email:', error);
+			res.status(500).send('Error occurred while sending email');
 		}
 	});
 

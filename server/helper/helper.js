@@ -1,5 +1,7 @@
 const { resolve } = require("sequelize-cli/lib/helpers/path-helper");
 const { Op } = require('sequelize');
+const nodemailer = require('nodemailer');
+
 
 module.exports = {
 	getCourses: function (req) {
@@ -531,6 +533,43 @@ module.exports = {
 		});
 	},
 
+	sendmail :function(req){
+		return new Promise((resolve, reject) => {
+
+			// Create a transporter object using SMTP transport
+			let transporter = nodemailer.createTransport({
+				host: process.env.MAILHOST,
+				port: 465, // cPanel SMTP port (usually 465 for SSL)
+				secure: true, // true for 465, false for other ports
+				auth: {
+					user: process.env.MAILUSER,
+					pass: process.env.MAILPASS
+				}
+			});
+
+
+// Send mail with defined transport object
+			// Send mail with defined transport object
+			try {
+				transporter.sendMail(req, (error, info) => {
+					if (error) {
+						console.error('Error occurred while sending email:', error);
+						reject(error);
+
+					} else {
+						console.log('Email sent successfully:', info.messageId);
+						resolve(info);
+
+					}
+				});
+			} catch (error) {
+				console.error('An error occurred:', error);
+				reject(error);
+
+			}
+
+		})
+	}
 
 };
 
