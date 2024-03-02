@@ -3,7 +3,7 @@ const express = require("express");
 const { protect, authorize } = require("../../middleware/auth");
 const {
 
-	getBlog, getLessons
+	getBlog, getLessons, getQuizzes
 } = require("../../helper/helper");
 const cors = require("cors");
 
@@ -16,11 +16,23 @@ module.exports = (app, db) => {
 	app.get("/getlessons", cors(), async (req, res) => {
 		req.db = db;
 		console.log(req.query)
-		const blog = await getLessons(req);
-		if (blog) {
-			res.status(200).send({ status: 200, data: blog });
+		const lessons = await getLessons(req);
+		if (lessons) {
+			res.status(200).send({ status: 200, data: lessons });
 		} else {
-			res.status(200).send({ status: 404, eroor: "posts not found!" });
+			res.status(200).send({ status: 404, eroor: "lessons not found!" });
+		}
+	});
+
+
+	app.get("/getquizzes", cors(), async (req, res) => {
+		req.db = db;
+		console.log(req.query)
+		const quizzes = await getQuizzes(req);
+		if (quizzes) {
+			res.status(200).send({ status: 200, data: quizzes });
+		} else {
+			res.status(200).send({ status: 404, eroor: "quizzes not found!" });
 		}
 	});
 
