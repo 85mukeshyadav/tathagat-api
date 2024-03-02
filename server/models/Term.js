@@ -25,6 +25,16 @@ module.exports = (sequelize) => {
             allowNull: false,
             defaultValue: 0,
         },
+        category_type: {
+            type: DataTypes.STRING(200),
+            allowNull: false,
+            defaultValue: 0,
+        },
+        course_type: {
+            type: DataTypes.STRING(200),
+            allowNull: false,
+            defaultValue: '',
+        },
 
     }
 

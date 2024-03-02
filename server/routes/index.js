@@ -19,6 +19,9 @@ const wppostsRoutes = require("./routes/posts");
 
 const wpblogRoutes = require("./routes/blog");
 
+const wpotherRoutes = require("./routes/other");
+
+
 // Add access to the app and db objects to each route
 
 function authrouter(app, db) {
@@ -93,7 +96,11 @@ function wppostsrouter(app,db){
 
 function wpblogrouter(app,db){
 	return wpblogRoutes(app, db);
-} 
+}
+
+function wpotherroutes(app,db){
+	return wpotherRoutes(app, db);
+}
 
 
 module.exports = {
@@ -116,4 +123,5 @@ module.exports = {
 	wptopicrouter,
 	wppostsrouter,
 	wpblogrouter,
+	wpotherroutes
 };
