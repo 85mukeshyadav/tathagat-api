@@ -3,7 +3,7 @@ const express = require("express");
 const { protect, authorize } = require("../../middleware/auth");
 const {
 
-	getBlog, getLessons, getQuizzes
+	getBlog, getLessons, getQuizzes, getVideos
 } = require("../../helper/helper");
 const cors = require("cors");
 
@@ -11,7 +11,7 @@ const multer = require("multer");
 const upload = multer({ dest: "uploads/" });
 
 module.exports = (app, db) => {
-	const { userQuestionsBookmark,sequelize, question, topic, chapter, users,wpForums,wpTopics,wpPosts,wpBlog,wpUser } = db;
+	const { userQuestionsBookmark,sequelize, question, topic, chapter, users,wpForums,wpTopics,wpPosts,wpBlog,wpUser ,WPPostMeta} = db;
 
 	app.get("/getlessons", cors(), async (req, res) => {
 		req.db = db;
@@ -35,6 +35,44 @@ module.exports = (app, db) => {
 			res.status(200).send({ status: 404, eroor: "quizzes not found!" });
 		}
 	});
+
+
+	app.get("/getvideos", cors(), async (req, res) => {
+		req.db = db;
+		console.log(req.query)
+		const videos = await getVideos(req);
+		if (videos) {
+			var videoFree = [];
+			var videoPaid = []
+			for(var price of videos) {
+
+				// Find the object where meta_key is 'stm_price'
+				const priceMetaObject = price.wp_postmeta.find(metaObject => metaObject.meta_key === 'price');
+				if (priceMetaObject) {
+					console.log(priceMetaObject); // Output the found object
+					if(priceMetaObject.meta_value != "0" && priceMetaObject.meta_value != "") {
+						videoPaid.push(price)
+					}else {
+						videoFree.push(price)
+					}
+
+				} else {
+					console.log('No object found with meta_key: price');
+					videoFree.push(price)
+				}
+
+
+			}
+			if(req.query.price === "free"){
+				res.status(200).send({ status: 200, data: videoFree });
+			}else {
+				res.status(200).send({ status: 200, data: videoPaid });
+			}
+		} else {
+			res.status(200).send({ status: 404, eroor: "videos not found!" });
+		}
+	});
+
 
 
 };

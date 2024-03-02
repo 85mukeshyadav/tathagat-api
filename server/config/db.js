@@ -151,7 +151,7 @@ wpUser.hasMany(wpPosts, { foreignKey: 'userid', sourceKey: 'ID' });
 wpBlog.belongsToMany(Term, { through: TermRelationship, foreignKey: 'object_id', otherKey: 'term_taxonomy_id' });
 
 
-WPPostMeta.belongsTo(wpBlog, { foreignKey: 'post_id' });
+wpBlog.hasMany(WPPostMeta, { foreignKey: 'post_id', targetKey: 'ID' });
 
 
 sequelize
@@ -225,5 +225,5 @@ module.exports = {
   wpUser,
     Term,
     TermRelationship,
-    WPPostMeta
+    WPPostMeta,
 };

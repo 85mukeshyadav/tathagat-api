@@ -1,4 +1,5 @@
 const { resolve } = require("sequelize-cli/lib/helpers/path-helper");
+const { Op } = require('sequelize');
 
 module.exports = {
 	getCourses: function (req) {
@@ -469,6 +470,49 @@ module.exports = {
 						}
 					],
 					where: {"post_type":"stm-quizzes", "post_status": "publish"} ,
+					offset,
+					limit,
+					order: [["ID", "DESC"]],
+				})
+				.then((s) => {
+					if (!s) {
+						resolve(null);
+					} else {
+						console.log(s)
+						resolve(s);
+					}
+				})
+				.catch((err) => {
+					console.log(err);
+				});
+		});
+	},
+
+	getVideos: function (req) {
+		return new Promise(async (resolve) => {
+			const { wpBlog,wpUser,Term,WPPostMeta } = req.db;
+
+			const offset = (parseInt(req.query.pageNumber) - 1) * parseInt(req.query.pageSize);
+			const limit = parseInt(req.query.pageSize);
+
+			wpBlog
+				.findAll({ include: [
+						{
+							model: wpUser,
+							attributes: ['user_login', 'user_email','user_nicename','display_name'], // Select specific columns from WpUser
+						}, {
+							model: Term, // Include the Term model
+							attributes: ['name','category_type','course_type'], // Specify the attribute(s) you want to select
+							through: { attributes: [] }, // Exclude attributes from the join table (wp_term_relationships)
+						},{
+							model: WPPostMeta, // Include the Term model
+							attributes: ['meta_key', 'meta_value', 'post_id','meta_id'],
+
+							// Specify the attribute(s) you want to select
+
+						}
+					],
+					where: {"post_type":"stm-zoom"} ,
 					offset,
 					limit,
 					order: [["ID", "DESC"]],
