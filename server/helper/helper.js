@@ -314,7 +314,7 @@ module.exports = {
 
 	getBlog: function (req) {
 		return new Promise(async (resolve) => {
-			const { wpBlog,wpUser } = req.db;
+			const { wpBlog,wpUser,Term } = req.db;
 
 			const offset = (parseInt(req.query.pageNumber) - 1) * parseInt(req.query.pageSize);
 			const limit = parseInt(req.query.pageSize);
@@ -324,7 +324,11 @@ module.exports = {
 					{
 					  model: wpUser,
 					  attributes: ['user_login', 'user_email','user_nicename','display_name'], // Select specific columns from WpUser
-					},
+					}, {
+							model: Term, // Include the Term model
+							attributes: ['name'], // Specify the attribute(s) you want to select
+							through: { attributes: [] }, // Exclude attributes from the join table (wp_term_relationships)
+						}
 				  ],
 					where: { "post_status": "publish","ping_status":"open"} ,
 					offset,
@@ -382,6 +386,33 @@ module.exports = {
 
 		});
 	},
+
+	getPostAttachment: function (req) {
+		return new Promise(async (resolve) => {
+			const { wpBlog } = req.db;
+
+			try {
+				const postId = req.params.postId;
+				const post = await wpBlog.findOne({
+					where: {
+						ID: postId,
+						post_type: 'attachment',
+					},
+				});
+				if (post) {
+					resolve(post)
+				} else {
+					console.log('Post not found');
+					resolve(null)
+				}
+			} catch (error) {
+				console.error('Error retrieving post:', error);
+				resolve(null)
+			}
+
+		});
+	},
+
 
 };
 

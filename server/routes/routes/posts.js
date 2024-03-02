@@ -12,7 +12,7 @@ const {
 	getForums,
 	getTopics,
 	getPosts,
-	addpost
+	addpost, getPostAttachment
 } = require("../../helper/helper");
 const cors = require("cors");
 
@@ -27,6 +27,30 @@ module.exports = (app, db) => {
 		console.log(req.query)
 		const posts = await getPosts(req);
 		if (posts) {
+			var index = 0;
+			for(var post of posts) {
+
+				// Regular expression to match the number inside [attach] tags
+				const regex = /\[attach\](\d+)\[\/attach\]/;
+				const match = post.body.match(regex);
+
+				if (match && match.length > 1) {
+					const attachmentNumber = match[1];
+					req.params.postId = attachmentNumber;
+					var postImage = await getPostAttachment(req)
+					if(postImage) {
+						posts[index]["attachment"] = postImage.guid
+					}
+
+				} else {
+					console.log("No attachment number found.");
+				}
+
+				index++
+
+			}
+
+
 			res.status(200).send({ status: 200, data: posts });
 		} else {
 			res.status(200).send({ status: 404, eroor: "posts not found!" });

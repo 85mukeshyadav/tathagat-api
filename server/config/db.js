@@ -85,6 +85,8 @@ const wpTopics = require('../models/wp_topics.js')(sequelize_wp, Sequelize);
 const wpPosts = require('../models/wp_posts.js')(sequelize_wp, Sequelize);
 const wpBlog = require('../models/wp_blog.js')(sequelize_wp, Sequelize);
 const wpUser = require('../models/wp_user.js')(sequelize_wp, Sequelize);
+const TermRelationship = require('../models/TermRelationship.js')(sequelize_wp, Sequelize);
+const Term = require('../models/Term.js')(sequelize_wp, Sequelize);
 
 
 subject.belongsTo(course);
@@ -143,6 +145,9 @@ wpUser.hasMany(wpBlog, { foreignKey: 'post_author', sourceKey: 'ID' });
 
 wpPosts.belongsTo(wpUser, { foreignKey: 'userid', targetKey: 'ID' });
 wpUser.hasMany(wpPosts, { foreignKey: 'userid', sourceKey: 'ID' });
+
+
+wpBlog.belongsToMany(Term, { through: TermRelationship, foreignKey: 'object_id', otherKey: 'term_taxonomy_id' });
 
 
 
@@ -215,5 +220,7 @@ module.exports = {
   wpTopics,
   wpPosts,
   wpBlog,
-  wpUser
+  wpUser,
+    Term,
+    TermRelationship
 };
