@@ -88,6 +88,7 @@ const wpUser = require('../models/wp_user.js')(sequelize_wp, Sequelize);
 const TermRelationship = require('../models/TermRelationship.js')(sequelize_wp, Sequelize);
 const Term = require('../models/Term.js')(sequelize_wp, Sequelize);
 const WPPostMeta = require('../models/wp_postmeta.js')(sequelize_wp, Sequelize);
+const WpTermTaxonomy = require('../models/wp_term_taxonomy.js')(sequelize_wp, Sequelize);
 
 
 subject.belongsTo(course);
@@ -152,6 +153,8 @@ wpBlog.belongsToMany(Term, { through: TermRelationship, foreignKey: 'object_id',
 
 
 wpBlog.hasMany(WPPostMeta, { foreignKey: 'post_id', targetKey: 'ID' });
+
+Term.hasMany(WpTermTaxonomy, { foreignKey: 'parent', targetKey: 'term_id' });
 
 
 sequelize
@@ -226,4 +229,5 @@ module.exports = {
     Term,
     TermRelationship,
     WPPostMeta,
+  WpTermTaxonomy,
 };

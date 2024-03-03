@@ -3,7 +3,7 @@ const express = require("express");
 const { protect, authorize } = require("../../middleware/auth");
 const {
 
-	getBlog, getLessons, getQuizzes, getVideos, sendmail
+	getBlog, getLessons, getQuizzes, getVideos, sendmail, getOod, getQod, getExamUpdates, getBlogCategory
 } = require("../../helper/helper");
 const cors = require("cors");
 
@@ -17,8 +17,11 @@ module.exports = (app, db) => {
 		req.db = db;
 		console.log(req.query)
 		const lessons = await getLessons(req);
+		req.params.blog = "lesson"
+		const getCategory = await getBlogCategory(req);
+
 		if (lessons) {
-			res.status(200).send({ status: 200, data: lessons });
+			res.status(200).send({ status: 200, data: lessons,lessons_categories:getCategory });
 		} else {
 			res.status(200).send({ status: 404, eroor: "lessons not found!" });
 		}
@@ -29,8 +32,11 @@ module.exports = (app, db) => {
 		req.db = db;
 		console.log(req.query)
 		const quizzes = await getQuizzes(req);
+		req.params.blog = "quiz"
+		const getCategory = await getBlogCategory(req);
+
 		if (quizzes) {
-			res.status(200).send({ status: 200, data: quizzes });
+			res.status(200).send({ status: 200, data: quizzes,quizzes_categories:getCategory });
 		} else {
 			res.status(200).send({ status: 404, eroor: "quizzes not found!" });
 		}
@@ -41,6 +47,8 @@ module.exports = (app, db) => {
 		req.db = db;
 		console.log(req.query)
 		const videos = await getVideos(req);
+		req.params.blog = "course"
+		const getCategory = await getBlogCategory(req);
 		if (videos) {
 			var videoFree = [];
 			var videoPaid = []
@@ -64,7 +72,7 @@ module.exports = (app, db) => {
 
 			}
 			if(req.query.price === "free"){
-				res.status(200).send({ status: 200, data: videoFree });
+				res.status(200).send({ status: 200, data: videoFree,course_categories:getCategory });
 			}else {
 				res.status(200).send({ status: 200, data: videoPaid });
 			}
@@ -91,6 +99,34 @@ module.exports = (app, db) => {
 		} catch (error) {
 			console.error('Error occurred while sending email:', error);
 			res.status(500).send('Error occurred while sending email');
+		}
+	});
+
+
+	app.get("/getqod", cors(), async (req, res) => {
+		req.db = db;
+		console.log(req.query)
+		const qod = await getQod(req);
+		req.params.blog = "qod"
+		const getCategory = await getBlogCategory(req);
+		if (qod) {
+			res.status(200).send({ status: 200, data: qod ,qod_categories:getCategory});
+		} else {
+			res.status(200).send({ status: 404, eroor: "qod not found!" });
+		}
+	});
+
+
+	app.get("/exam_update", cors(), async (req, res) => {
+		req.db = db;
+		console.log(req.query)
+		const examUpdates = await getExamUpdates(req);
+		req.params.blog = "exam-updates"
+		const getCategory = await getBlogCategory(req);
+		if (examUpdates) {
+			res.status(200).send({ status: 200, data: examUpdates,exam_update_categories:getCategory });
+		} else {
+			res.status(200).send({ status: 404, eroor: "Exam Updates not found!" });
 		}
 	});
 

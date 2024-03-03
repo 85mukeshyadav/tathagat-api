@@ -12,7 +12,7 @@ const {
 	getForums,
 	getTopics,
 	getPosts,
-	getBlog
+	getBlog, getBlogCategory
 } = require("../../helper/helper");
 const cors = require("cors");
 
@@ -26,8 +26,10 @@ module.exports = (app, db) => {
 		req.db = db;
 		console.log(req.query)
 		const blog = await getBlog(req);
+		req.params.blog = "blog"
+		const getCategory = await getBlogCategory(req);
 		if (blog) {
-			res.status(200).send({ status: 200, data: blog });
+			res.status(200).send({ status: 200, data: blog, blog_categories:getCategory });
 		} else {
 			res.status(200).send({ status: 404, eroor: "posts not found!" });
 		}

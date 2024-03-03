@@ -322,6 +322,18 @@ module.exports = {
 			const offset = (parseInt(req.query.pageNumber) - 1) * parseInt(req.query.pageSize);
 			const limit = parseInt(req.query.pageSize);
 
+			const whereCondition = {};
+
+			if (req.query.term_id) {
+				whereCondition.term_id = req.query.term_id;
+			} else {
+				whereCondition.category_type = 'blog';
+			}
+
+			if(req.query.course_type){
+				whereCondition.course_type = req.query.course_type
+			}
+
 			wpBlog
 				.findAll({ include: [
 					{
@@ -329,11 +341,12 @@ module.exports = {
 					  attributes: ['user_login', 'user_email','user_nicename','display_name'], // Select specific columns from WpUser
 					}, {
 							model: Term, // Include the Term model
-							attributes: ['name','category_type','course_type'], // Specify the attribute(s) you want to select
-							through: { attributes: [] }, // Exclude attributes from the join table (wp_term_relationships)
+							attributes: ['term_id','name','slug','term_group','category_type','course_type'], // Specify the attribute(s) you want to select
+							through: { attributes: [] },
+							where: whereCondition,// Exclude attributes from the join table (wp_term_relationships)
 						}
 				  ],
-					where: { "post_status": "publish","ping_status":"open"} ,
+					where: {"post_status":"publish"} ,
 					offset,
 					limit,
 					order: [["ID", "DESC"]],
@@ -423,6 +436,14 @@ module.exports = {
 			const offset = (parseInt(req.query.pageNumber) - 1) * parseInt(req.query.pageSize);
 			const limit = parseInt(req.query.pageSize);
 
+
+			const whereCondition = {};
+			whereCondition.category_type = 'lesson';
+			if(req.query.course_type){
+				whereCondition.course_type = req.query.course_type
+			}
+
+
 			wpBlog
 				.findAll({ include: [
 						{
@@ -430,11 +451,18 @@ module.exports = {
 							attributes: ['user_login', 'user_email','user_nicename','display_name'], // Select specific columns from WpUser
 						}, {
 							model: Term, // Include the Term model
-							attributes: ['name','category_type','course_type'], // Specify the attribute(s) you want to select
+							attributes: ['term_id','name','slug','term_group','category_type','course_type'], // Specify the attribute(s) you want to select
+							where: whereCondition,
 							through: { attributes: [] }, // Exclude attributes from the join table (wp_term_relationships)
+							include: {
+								model: WpTermTaxonomy, // Include the Term model for WpTermTaxonomy
+								attributes: [], // If you don't want to select any attributes from Term
+								attributes: ['term_taxonomy_id','term_id','taxonomy','description','parent','count'], // Specify the attribute(s) you want to select
+
+							}
 						}
 					],
-					where: {"post_type":"stm-lessons", "post_status": "publish"} ,
+					where: {"post_status":"publish"} ,
 					offset,
 					limit,
 					order: [["ID", "DESC"]],
@@ -455,10 +483,16 @@ module.exports = {
 
 	getQuizzes: function (req) {
 		return new Promise(async (resolve) => {
-			const { wpBlog,wpUser,Term,WPPostMeta } = req.db;
+			const { wpBlog,wpUser,Term,WPPostMeta, WpTermTaxonomy} = req.db;
 
 			const offset = (parseInt(req.query.pageNumber) - 1) * parseInt(req.query.pageSize);
 			const limit = parseInt(req.query.pageSize);
+
+			const whereCondition = {};
+			whereCondition.category_type = 'quiz';
+			if(req.query.course_type){
+				whereCondition.course_type = req.query.course_type
+			}
 
 			wpBlog
 				.findAll({ include: [
@@ -467,11 +501,17 @@ module.exports = {
 							attributes: ['user_login', 'user_email','user_nicename','display_name'], // Select specific columns from WpUser
 						}, {
 							model: Term, // Include the Term model
-							attributes: ['name','category_type','course_type'], // Specify the attribute(s) you want to select
-							through: { attributes: [] }, // Exclude attributes from the join table (wp_term_relationships)
+							attributes: ['term_id','name','slug','term_group','category_type','course_type'], // Specify the attribute(s) you want to select
+							where: whereCondition,
+							include: {
+								model: WpTermTaxonomy, // Include the Term model for WpTermTaxonomy
+								attributes: [], // If you don't want to select any attributes from Term
+								attributes: ['term_taxonomy_id','term_id','taxonomy','description','parent','count'], // Specify the attribute(s) you want to select
+
+							},
 						}
 					],
-					where: {"post_type":"stm-quizzes", "post_status": "publish"} ,
+					//where: {"post_status":"publish"} ,
 					offset,
 					limit,
 					order: [["ID", "DESC"]],
@@ -497,6 +537,12 @@ module.exports = {
 			const offset = (parseInt(req.query.pageNumber) - 1) * parseInt(req.query.pageSize);
 			const limit = parseInt(req.query.pageSize);
 
+			const whereCondition = {};
+			whereCondition.category_type = 'course';
+			if(req.query.course_type){
+				whereCondition.course_type = req.query.course_type
+			}
+
 			wpBlog
 				.findAll({ include: [
 						{
@@ -504,7 +550,8 @@ module.exports = {
 							attributes: ['user_login', 'user_email','user_nicename','display_name'], // Select specific columns from WpUser
 						}, {
 							model: Term, // Include the Term model
-							attributes: ['name','category_type','course_type'], // Specify the attribute(s) you want to select
+							attributes: ['term_id','name','slug','term_group','category_type','course_type'], // Specify the attribute(s) you want to select
+							where: whereCondition,
 							through: { attributes: [] }, // Exclude attributes from the join table (wp_term_relationships)
 						},{
 							model: WPPostMeta, // Include the Term model
@@ -514,7 +561,7 @@ module.exports = {
 
 						}
 					],
-					where: {"post_type":"stm-courses"} ,
+					where: {"post_status":"publish"} ,
 					offset,
 					limit,
 					order: [["ID", "DESC"]],
@@ -569,7 +616,129 @@ module.exports = {
 			}
 
 		})
-	}
+	},
+
+
+	getBlogCategory: function (req) {
+		return new Promise(async (resolve) => {
+			const { wpBlog,wpUser,Term } = req.db;
+
+			Term
+				.findAll({
+					where: { category_type: req.params.blog  },
+				})
+				.then((s) => {
+					if (!s) {
+						resolve(null);
+					} else {
+						console.log(s)
+						resolve(s);
+					}
+				})
+				.catch((err) => {
+					console.log(err);
+				});
+		});
+	},
+
+	getQod: function (req) {
+		return new Promise(async (resolve) => {
+			const { wpBlog,wpUser,Term,WPPostMeta } = req.db;
+
+			const offset = (parseInt(req.query.pageNumber) - 1) * parseInt(req.query.pageSize);
+			const limit = parseInt(req.query.pageSize);
+
+			const whereCondition = {};
+			whereCondition.category_type = 'qod';
+			if(req.query.course_type){
+				whereCondition.course_type = req.query.course_type
+			}
+
+			wpBlog
+				.findAll({ include: [
+						{
+							model: wpUser,
+							attributes: ['user_login', 'user_email','user_nicename','display_name'], // Select specific columns from WpUser
+						}, {
+							model: Term, // Include the Term model
+							attributes: ['term_id','name','slug','term_group','category_type','course_type'], // Specify the attribute(s) you want to select
+							where: whereCondition,
+							include: {
+								model: WpTermTaxonomy, // Include the Term model for WpTermTaxonomy
+								attributes: [], // If you don't want to select any attributes from Term
+								attributes: ['term_taxonomy_id','term_id','taxonomy','description','parent','count'], // Specify the attribute(s) you want to select
+
+							}
+						}
+					],
+					where: {"post_status":"publish"} ,
+					offset,
+					limit,
+					order: [["ID", "DESC"]],
+				})
+				.then((s) => {
+					if (!s) {
+						resolve(null);
+					} else {
+						console.log(s)
+						resolve(s);
+					}
+				})
+				.catch((err) => {
+					console.log(err);
+				});
+		});
+	},
+
+	getExamUpdates: function (req) {
+		return new Promise(async (resolve) => {
+			const { wpBlog,wpUser,Term,WPPostMeta } = req.db;
+
+			const offset = (parseInt(req.query.pageNumber) - 1) * parseInt(req.query.pageSize);
+			const limit = parseInt(req.query.pageSize);
+
+			const whereCondition = {};
+			whereCondition.category_type = 'exam-updates';
+			if(req.query.course_type){
+				whereCondition.course_type = req.query.course_type
+			}
+
+			wpBlog
+				.findAll({ include: [
+						{
+							model: wpUser,
+							attributes: ['user_login', 'user_email','user_nicename','display_name'], // Select specific columns from WpUser
+						}, {
+							model: Term, // Include the Term model
+							attributes: ['term_id','name','slug','term_group','category_type','course_type'], // Specify the attribute(s) you want to select
+							where: whereCondition,
+							include: {
+								model: WpTermTaxonomy, // Include the Term model for WpTermTaxonomy
+								attributes: [], // If you don't want to select any attributes from Term
+								attributes: ['term_taxonomy_id','term_id','taxonomy','description','parent','count'], // Specify the attribute(s) you want to select
+
+							}
+						}
+					],
+					where: {"post_status":"publish"} ,
+					offset,
+					limit,
+					order: [["ID", "DESC"]],
+				})
+				.then((s) => {
+					if (!s) {
+						resolve(null);
+					} else {
+						console.log(s)
+						resolve(s);
+					}
+				})
+				.catch((err) => {
+					console.log(err);
+				});
+		});
+	},
+
 
 };
 
