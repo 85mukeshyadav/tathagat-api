@@ -514,7 +514,7 @@ module.exports = {
 
 						}
 					],
-					where: {"post_type":"stm-zoom"} ,
+					where: {"post_type":"stm-courses"} ,
 					offset,
 					limit,
 					order: [["ID", "DESC"]],
