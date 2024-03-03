@@ -532,7 +532,7 @@ module.exports = {
 
 	getVideos: function (req) {
 		return new Promise(async (resolve) => {
-			const { wpBlog,wpUser,Term,WPPostMeta } = req.db;
+			const { wpBlog,wpUser,Term,WPPostMeta,WpTermTaxonomy } = req.db;
 
 			const offset = (parseInt(req.query.pageNumber) - 1) * parseInt(req.query.pageSize);
 			const limit = parseInt(req.query.pageSize);
