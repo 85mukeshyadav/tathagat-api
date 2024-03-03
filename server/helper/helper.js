@@ -552,7 +552,13 @@ module.exports = {
 							model: Term, // Include the Term model
 							attributes: ['term_id','name','slug','term_group','category_type','course_type'], // Specify the attribute(s) you want to select
 							where: whereCondition,
-							through: { attributes: [] }, // Exclude attributes from the join table (wp_term_relationships)
+							through: { attributes: [] },
+							include: {
+								model: WpTermTaxonomy, // Include the Term model for WpTermTaxonomy
+								attributes: [], // If you don't want to select any attributes from Term
+								attributes: ['term_taxonomy_id','term_id','taxonomy','description','parent','count'], // Specify the attribute(s) you want to select
+
+							},// Exclude attributes from the join table (wp_term_relationships)
 						},{
 							model: WPPostMeta, // Include the Term model
 							attributes: ['meta_key', 'meta_value', 'post_id','meta_id'],
@@ -625,6 +631,12 @@ module.exports = {
 
 			Term
 				.findAll({
+					include: {
+						model: WpTermTaxonomy, // Include the Term model for WpTermTaxonomy
+						attributes: [], // If you don't want to select any attributes from Term
+						attributes: ['term_taxonomy_id','term_id','taxonomy','description','parent','count'], // Specify the attribute(s) you want to select
+
+					},
 					where: { category_type: req.params.blog  },
 				})
 				.then((s) => {
