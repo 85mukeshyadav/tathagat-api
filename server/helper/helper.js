@@ -317,7 +317,7 @@ module.exports = {
 
 	getBlog: function (req) {
 		return new Promise(async (resolve) => {
-			const { wpBlog,wpUser,Term } = req.db;
+			const { wpBlog,wpUser,Term,WpTermTaxonomy, } = req.db;
 
 			const offset = (parseInt(req.query.pageNumber) - 1) * parseInt(req.query.pageSize);
 			const limit = parseInt(req.query.pageSize);
@@ -431,7 +431,7 @@ module.exports = {
 
 	getLessons: function (req) {
 		return new Promise(async (resolve) => {
-			const { wpBlog,wpUser,Term,WPPostMeta } = req.db;
+			const { wpBlog,wpUser,Term,WPPostMeta,WpTermTaxonomy, } = req.db;
 
 			const offset = (parseInt(req.query.pageNumber) - 1) * parseInt(req.query.pageSize);
 			const limit = parseInt(req.query.pageSize);
@@ -511,7 +511,7 @@ module.exports = {
 							},
 						}
 					],
-					//where: {"post_status":"publish"} ,
+					where: {"post_status":"publish"} ,
 					offset,
 					limit,
 					order: [["ID", "DESC"]],
@@ -621,7 +621,7 @@ module.exports = {
 
 	getBlogCategory: function (req) {
 		return new Promise(async (resolve) => {
-			const { wpBlog,wpUser,Term } = req.db;
+			const { wpBlog,wpUser,Term,WpTermTaxonomy, } = req.db;
 
 			Term
 				.findAll({
@@ -643,7 +643,7 @@ module.exports = {
 
 	getQod: function (req) {
 		return new Promise(async (resolve) => {
-			const { wpBlog,wpUser,Term,WPPostMeta } = req.db;
+			const { wpBlog,wpUser,Term,WPPostMeta,WpTermTaxonomy, } = req.db;
 
 			const offset = (parseInt(req.query.pageNumber) - 1) * parseInt(req.query.pageSize);
 			const limit = parseInt(req.query.pageSize);
@@ -692,7 +692,7 @@ module.exports = {
 
 	getExamUpdates: function (req) {
 		return new Promise(async (resolve) => {
-			const { wpBlog,wpUser,Term,WPPostMeta } = req.db;
+			const { wpBlog,wpUser,Term,WPPostMeta,WpTermTaxonomy, } = req.db;
 
 			const offset = (parseInt(req.query.pageNumber) - 1) * parseInt(req.query.pageSize);
 			const limit = parseInt(req.query.pageSize);
