@@ -126,7 +126,12 @@ module.exports = (app, db) => {
 		if (examUpdates) {
 			res.status(200).send({ status: 200, data: examUpdates,exam_update_categories:getCategory });
 		} else {
-			res.status(200).send({ status: 404, eroor: "Exam Updates not found!" });
+			if(getCategory){
+				res.status(200).send({ status: 200, data: [],exam_update_categories:getCategory });
+
+			}else {
+				res.status(200).send({status: 404, eroor: "Exam Updates not found!"});
+			}
 		}
 	});
 
