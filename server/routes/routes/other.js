@@ -56,6 +56,7 @@ module.exports = (app, db) => {
 
 				// Find the object where meta_key is 'stm_price'
 				const priceMetaObject = price.wp_postmeta.find(metaObject => metaObject.meta_key === 'price');
+
 				if (priceMetaObject) {
 					console.log(priceMetaObject); // Output the found object
 					if(priceMetaObject.meta_value != "0" && priceMetaObject.meta_value != "") {

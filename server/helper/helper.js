@@ -562,7 +562,9 @@ module.exports = {
 						},{
 							model: WPPostMeta, // Include the Term model
 							attributes: ['meta_key', 'meta_value', 'post_id','meta_id'],
-
+							where: {
+								meta_key: ['price', 'video_duration','duration_info','views','lesson_shortcode','stm-zoom','lesson_embed_ctx']
+							}
 							// Specify the attribute(s) you want to select
 
 						}
